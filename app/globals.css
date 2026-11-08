@@ -77,3 +77,14 @@
 .discover-chips button:hover{border-color:var(--lime);color:var(--lime)}
 .coming-soon{margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:14px;border:1px solid #c4b5fd55;background:#c4b5fd14;color:#efeaf8;letter-spacing:2px;font-size:13px}
 .song-attribution{color:#c4b5fd;font-size:12px;text-decoration:none}
+.magic-link-form{display:flex;flex-direction:column;gap:10px}
+.magic-link-form label{font-size:10px;letter-spacing:1px;color:#9a9da7}
+.magic-email-field{display:flex;align-items:center;gap:8px;height:48px;padding:0 12px;border:1px solid #ffffff22;border-radius:10px;background:#0d0e14}
+.magic-email-field input{flex:1;border:0;background:transparent;color:#f4f1ea;font-size:14px;outline:none}
+.magic-link-form button{height:48px;border:0;border-radius:10px;background:#c4b5fd;color:#1a1028;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.magic-link-form button:disabled{opacity:.55;cursor:wait}
+.auth-success{display:flex;gap:10px;align-items:flex-start;color:#efeaf8}
+.auth-success p,.auth-error{font-size:12px;line-height:1.6}
+.auth-error{color:#ffb4b4;margin:12px 0 0}
+.spin{animation:vybe-spin 1s linear infinite}
+@keyframes vybe-spin{to{transform:rotate(360deg)}}
