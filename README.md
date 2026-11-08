@@ -45,3 +45,17 @@ After DNS verifies, set the canonical URL / Supabase Site URL to `https://vybe.i
 - Profile table with row-level security
 
 This is the secure foundation, not yet the full cloud music product. Next phase: persist playlists/favorites in Supabase with per-user RLS, then connect the discovery player. The current sign-in screen is Google-only; add email/password or magic-link flows if desired.
+
+## VYBE music workspace setup
+
+The dashboard now uses the public iTunes Search API through `/api/music/search`.
+It plays only the preview clips supplied by iTunes; a preview may be unavailable
+for some tracks and is not a full-track streaming subscription.
+
+### One-time Supabase setup
+Run the complete `supabase/schema.sql` file in Supabase SQL Editor. It keeps the
+existing `profiles` table and adds `favorites`, `playlists`, and `playlist_tracks`
+with row-level security. No service-role key is needed in the browser.
+
+After the SQL succeeds, deploy the project again on Vercel. Existing Supabase
+and Google OAuth environment variables remain unchanged.

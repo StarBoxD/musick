@@ -3,3 +3,58 @@
 .auth-page{min-height:100vh;display:grid;place-items:center;padding:25px;position:relative;background:radial-gradient(ellipse at 50% 30%,#a18aff18,transparent 45%),var(--bg)}.back-link{position:absolute;top:30px;left:5%;display:flex;gap:8px;align-items:center;color:#9699a3;font-size:11px}.auth-card{width:min(430px,100%);padding:43px;border:1px solid #ffffff16;border-radius:15px;background:#14161e;box-shadow:0 30px 90px #0006}.auth-brand{margin-bottom:48px}.auth-card h1{font-size:54px;line-height:.98;letter-spacing:-3px;margin:17px 0}.auth-card>p{font-size:11px;color:#9a9da7;line-height:1.8;margin-bottom:27px}.google-button{height:48px;width:100%;border:1px solid #ffffff26;background:#f4f4f4;color:#171717;border-radius:6px;display:flex;align-items:center;justify-content:center;gap:11px;font-size:11px;font-weight:800}.google-button:hover{background:white}.google-button:disabled{opacity:.6;cursor:wait}.legal-note{display:block;color:#666b76;font-size:9px;line-height:1.7;text-align:center;margin-top:20px}.error-message{color:#ff8c9b!important;font-size:10px!important}.auth-decoration{position:absolute;bottom:25px;right:5%;font:9px "DM Mono";color:#555b65;letter-spacing:1px}
 .dashboard-page{min-height:100vh;padding:0 6.5%;display:flex;flex-direction:column;background:radial-gradient(ellipse at 70% 20%,#a18aff13,transparent 42%),var(--bg)}.dashboard-nav{height:80px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.user-chip{display:flex;align-items:center;gap:15px;font-size:10px;color:#b8bac2}.signout-button{height:34px;width:34px;border:1px solid var(--line);background:#ffffff08;border-radius:7px;color:#aaa;display:grid;place-items:center}.dashboard-welcome{width:min(900px,100%);margin:auto;padding:75px 0}.dashboard-welcome h1{font-size:clamp(52px,8vw,85px);letter-spacing:-5px;line-height:.98;margin:20px 0}.dashboard-welcome>p{font-size:12px;color:#9a9da7}.dashboard-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:35px 0}.dashboard-cards article{padding:22px;border:1px solid var(--line);background:#ffffff06;border-radius:10px;display:flex;flex-direction:column;gap:11px}.dashboard-cards svg{color:var(--lime)}.dashboard-cards b{font-size:12px}.dashboard-cards small{font-size:10px;color:#898d98;line-height:1.6}
 @keyframes rotate{to{transform:rotate(360deg)}}@media(max-width:700px){.landing{padding:0 20px}.landing-nav{height:70px}.landing-nav nav{gap:14px;font-size:9px}.landing-nav nav>a:first-child,.landing-nav nav>a:nth-child(2){display:none}.landing-hero{min-height:590px;padding:60px 0}.landing-hero h1{font-size:67px;letter-spacing:-5px}.hero-record{width:160px;height:160px;right:7%;top:55%;opacity:.72}.record-inner{width:56px;height:56px}.orb-b{width:190px;height:190px;right:2%;top:51%}.hero-buttons{gap:14px}.feature-strip{grid-template-columns:1fr;gap:22px}.landing-bottom{padding:60px 0}.landing-bottom h2{font-size:36px}.auth-card{padding:30px 24px}.auth-card h1{font-size:48px}.dashboard-page{padding:0 20px}.dashboard-welcome{padding:55px 0}.dashboard-cards{grid-template-columns:1fr}.dashboard-welcome h1{font-size:58px}.user-chip span{max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+
+/* VYBE music workspace */
+.music-app{min-height:100vh;display:grid;grid-template-columns:235px 1fr;background:radial-gradient(ellipse at 75% 0%,#9b83ff18,transparent 35%),var(--bg);padding-bottom:100px}
+.music-sidebar{border-right:1px solid var(--line);padding:30px 22px;display:flex;flex-direction:column;gap:10px;min-height:100vh;position:sticky;top:0;height:100vh}
+.side-label{font:9px "DM Mono",monospace;letter-spacing:1.5px;color:#777d89;margin:34px 0 8px}
+.side-link{display:flex;align-items:center;gap:13px;border:0;background:transparent;color:#999daa;padding:13px 12px;border-radius:8px;text-align:left;font:600 11px Manrope;cursor:pointer}
+.side-link:hover,.side-link.active{background:#d2ff5a12;color:var(--lime)}
+.sidebar-bottom{margin-top:auto;border-top:1px solid var(--line);padding-top:18px;display:flex;align-items:center;justify-content:space-between;color:#aeb1bc;font-size:10px;gap:10px}
+.music-main{padding:0 clamp(22px,5vw,76px);max-width:1500px;width:100%;margin:auto}
+.music-topbar{height:78px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.music-heading{display:flex;align-items:end;justify-content:space-between;gap:25px;padding:48px 0 28px}
+.music-heading .side-label{display:block;margin:0}
+.music-heading h1{font-size:clamp(34px,5vw,58px);letter-spacing:-3px;margin:12px 0 8px}
+.music-heading p{color:var(--muted);font-size:12px;margin:0}
+.music-search{height:54px;display:flex;align-items:center;gap:12px;padding:0 15px;border:1px solid var(--line);background:#ffffff07;border-radius:9px;color:#9296a3;margin:5px 0 35px}
+.music-search input,.create-list input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--text);font:12px Manrope}
+.music-search button,.create-list button{border:0;background:var(--lime);color:#171a0d;border-radius:6px;padding:10px 17px;font:800 10px Manrope;cursor:pointer}
+.music-search button:disabled{opacity:.6}
+.section-caption{display:flex;justify-content:space-between;align-items:center;color:#858a96;font:9px "DM Mono";letter-spacing:1.4px;margin:0 0 15px}
+.section-caption small{color:#666b76}
+.song-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.song-card{display:flex;align-items:center;gap:13px;padding:10px;border:1px solid var(--line);background:#ffffff05;border-radius:10px;min-width:0;transition:.2s}
+.song-card:hover{border-color:#d2ff5a55;background:#ffffff09}
+.song-cover{width:66px;height:66px;flex:none;padding:0;border:0;border-radius:7px;overflow:hidden;position:relative;background:#292936;color:var(--lime);display:grid;place-items:center;font-size:25px;font-weight:800;cursor:pointer}
+.song-cover img{width:100%;height:100%;object-fit:cover}
+.cover-play{position:absolute;inset:0;display:grid;place-items:center;background:#08090a99;color:white;opacity:0;transition:.2s}
+.song-cover:hover .cover-play{opacity:1}
+.song-info{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.song-info strong,.song-info span,.song-info small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.song-info strong{font-size:11px}.song-info span{font-size:10px;color:#b3b6c0}.song-info small{font-size:9px;color:#747986}
+.song-actions{display:flex;gap:3px}
+.icon-action{border:0;background:transparent;color:#858a96;padding:8px;display:grid;place-items:center;cursor:pointer}
+.icon-action:hover,.icon-action.is-favorite{color:var(--lime)}
+.create-list{display:flex;align-items:center;gap:8px;border:1px solid var(--line);padding:6px;border-radius:8px;width:min(300px,48%)}
+.create-list input{padding-left:7px}
+.playlist-tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:8px 0 30px}
+.playlist-tools select{background:#171923;color:#ddd;border:1px solid var(--line);border-radius:7px;padding:11px;max-width:240px;font:10px Manrope}
+.playlist-tabs{display:flex;flex-wrap:wrap;gap:7px}
+.playlist-chip{border:1px solid var(--line);background:#ffffff07;color:#aeb1bc;border-radius:20px;padding:9px 13px;font:10px Manrope;cursor:pointer}
+.playlist-chip.selected{border-color:var(--lime);color:var(--lime)}
+.music-message{font-size:10px;color:var(--lime);margin:0 0 16px}
+.empty-state{border:1px dashed #ffffff20;border-radius:10px;padding:38px 20px;text-align:center;color:#898e9b;font-size:11px;line-height:1.8}
+.mini-player{position:fixed;z-index:10;bottom:18px;left:calc(235px + 5vw);right:5vw;min-height:76px;display:flex;align-items:center;gap:14px;padding:10px 16px;border:1px solid #ffffff24;border-radius:12px;background:#171923ed;backdrop-filter:blur(18px);box-shadow:0 15px 50px #0008}
+.mini-player>img{width:48px;height:48px;object-fit:cover;border-radius:6px}
+.player-track{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}.player-track strong,.player-track span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.player-track strong{font-size:11px}.player-track span{font-size:10px;color:#9296a3}
+.player-control{width:38px;height:38px;border:0;border-radius:50%;background:var(--lime);color:#171a0d;display:grid;place-items:center;cursor:pointer}
+.preview-note{font-size:9px;color:#9296a3;display:flex;gap:5px;align-items:center}
+.player-progress{position:absolute;bottom:0;left:12px;right:12px;height:2px;background:#d2ff5a55;border-radius:3px}
+.mobile-user{display:none}
+@media(max-width:850px){.music-app{grid-template-columns:1fr}.music-sidebar{position:static;height:auto;min-height:0;border-right:0;border-bottom:1px solid var(--line);padding:15px 20px;display:grid;grid-template-columns:repeat(3,1fr);align-items:center}.music-sidebar .brand{grid-column:1/-1}.music-sidebar .side-label{display:none}.side-link{justify-content:center;padding:10px 5px;font-size:10px}.sidebar-bottom{display:none}.music-main{padding:0 20px}.mini-player{left:12px;right:12px;bottom:10px}.music-heading{padding:35px 0 22px}}
+@media(max-width:580px){.song-grid{grid-template-columns:1fr}.music-heading{align-items:flex-start;flex-direction:column}.create-list{width:100%}.music-heading h1{font-size:38px}.music-topbar{height:60px}.mobile-user{display:flex;align-items:center;gap:8px;font-size:9px;color:#aeb1bc}.music-sidebar{gap:4px}.side-link{font-size:9px;gap:6px}.song-cover{width:58px;height:58px}}
+
+.discover-chips{display:flex;flex-wrap:wrap;gap:8px;margin:-18px 0 30px}
+.discover-chips button{border:1px solid var(--line);background:#ffffff07;color:#aeb1bc;border-radius:20px;padding:8px 13px;font:10px Manrope;cursor:pointer}
+.discover-chips button:hover{border-color:var(--lime);color:var(--lime)}
