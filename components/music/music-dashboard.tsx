@@ -1,121 +1,94 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { AudioLines, Compass, Heart, ListMusic, Plus, Search, Sparkles } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { searchMusic } from "@/lib/music/itunes";
-import type { Playlist, Song } from "@/types/music";
+import { AudioLines, Compass, Gem, Heart, ListMusic, Sparkles, SunMedium, Wand2 } from "lucide-react";
+import type { Song } from "@/types/music";
 import SignOutButton from "@/components/sign-out-button";
-import SongCard from "@/components/music/song-card";
+import DiscoverPanel from "@/components/music/discover-panel";
+import PersonalPanel from "@/components/music/personal-panel";
+import SongGrid from "@/components/music/song-grid";
 import MiniPlayer from "@/components/music/mini-player";
+import { useLibrary } from "@/components/music/use-library";
 
-type Props = { userId: string; displayName: string };
+type Tab = "discover" | "daily" | "match" | "gems" | "smart" | "favorites" | "playlists";
+const TABS: { id: Tab; label: string; icon: typeof Compass }[] = [
+  { id: "discover", label: "Keşfet", icon: Compass },
+  { id: "daily", label: "Günlük", icon: SunMedium },
+  { id: "match", label: "Eşleşme", icon: Sparkles },
+  { id: "gems", label: "Gizli", icon: Gem },
+  { id: "smart", label: "Akıllı", icon: Wand2 },
+  { id: "favorites", label: "Favoriler", icon: Heart },
+  { id: "playlists", label: "Listeler", icon: ListMusic },
+];
 
-export default function MusicDashboard({ userId, displayName }: Props) {
-  const supabase = useMemo(() => createClient(), []);
-  const [tab, setTab] = useState<"discover" | "favorites" | "playlists">("discover");
-  const [query, setQuery] = useState("Tarkan");
-  const [songs, setSongs] = useState<Song[]>([]);
-  const [favorites, setFavorites] = useState<Song[]>([]);
-  const [playlists, setPlaylists] = useState<Playlist[]>([]);
-  const [selectedPlaylist, setSelectedPlaylist] = useState("");
+const COPY: Record<Tab, { kicker: string; title: string }> = {
+  discover: { kicker: "MOOD", title: "Bugün hangi ruh hâli?" },
+  daily: { kicker: "DAILY VYBE", title: "Bugünün parçası." },
+  match: { kicker: "VYBE MATCH", title: "Zevkine yakın, duymadığın parçalar." },
+  gems: { kicker: "HIDDEN GEMS", title: "Hit listesinin dışında." },
+  smart: { kicker: "SMART", title: "Favorilerinden kurulan listeler." },
+  favorites: { kicker: "SAVED", title: "Sakladığın parçalar." },
+  playlists: { kicker: "LISTS", title: "Kendi listelerin." },
+};
+
+export default function MusicDashboard({ userId, displayName }: { userId: string; displayName: string }) {
+  const library = useLibrary(userId);
+  const [tab, setTab] = useState<Tab>("discover");
+  const [queue, setQueue] = useState<Song[]>([]);
+  const [index, setIndex] = useState(0);
   const [playlistName, setPlaylistName] = useState("");
-  const [activePlaylist, setActivePlaylist] = useState("");
-  const [playlistSongs, setPlaylistSongs] = useState<Song[]>([]);
-  const [currentSong, setCurrentSong] = useState<Song | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    Promise.all([
-      supabase.from("favorites").select("song").eq("user_id", userId),
-      supabase.from("playlists").select("id,name,created_at").eq("user_id", userId).order("created_at", { ascending: false }),
-    ]).then(([favResult, listResult]) => {
-      setFavorites((favResult.data || []).map((row) => row.song as Song));
-      setPlaylists((listResult.data || []) as Playlist[]);
-    });
-  }, [supabase, userId]);
-
-  useEffect(() => {
-    if (!activePlaylist) { setPlaylistSongs([]); return; }
-    supabase.from("playlist_tracks").select("song").eq("playlist_id", activePlaylist)
-      .then(({ data }) => setPlaylistSongs((data || []).map((row) => row.song as Song)));
-  }, [activePlaylist, supabase]);
-
-  const runSearch = async (term = query) => {
-    if (!term.trim()) return;
-    setLoading(true); setMessage("");
-    try { setSongs(await searchMusic(term)); }
-    catch (error) { setMessage(error instanceof Error ? error.message : "Bir hata oluştu."); }
-    finally { setLoading(false); }
+  const [selected, setSelected] = useState("");
+  const song = queue[index] ?? null;
+  const play = (songs: Song[], nextIndex: number) => { setQueue(songs); setIndex(nextIndex); };
+  const add = (track: Song) => {
+    const playlistId = selected || library.activePlaylist;
+    if (!playlistId) { library.setMessage("Önce bir playlist seç."); setTab("playlists"); return; }
+    void library.addToPlaylist(playlistId, track);
   };
-
-  useEffect(() => { void runSearch("Tarkan"); }, []);
-
-  const toggleFavorite = async (song: Song) => {
-    const exists = favorites.some((item) => item.trackId === song.trackId);
-    if (exists) {
-      const { error } = await supabase.from("favorites").delete().eq("user_id", userId).eq("track_id", song.trackId);
-      if (!error) setFavorites((items) => items.filter((item) => item.trackId !== song.trackId));
-    } else {
-      const { error } = await supabase.from("favorites").insert({ user_id: userId, track_id: song.trackId, song });
-      if (!error) setFavorites((items) => [song, ...items]);
-    }
-  };
-
-  const createPlaylist = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!playlistName.trim()) return;
-    const { data, error } = await supabase.from("playlists").insert({ user_id: userId, name: playlistName.trim() }).select("id,name,created_at").single();
-    if (error) { setMessage("Playlist oluşturulamadı. SQL şemasını çalıştırdığını kontrol et."); return; }
-    setPlaylists((items) => [data as Playlist, ...items]);
-    setPlaylistName(""); setActivePlaylist(data.id); setSelectedPlaylist(data.id); setTab("playlists");
-  };
-
-  const addToPlaylist = async (song: Song) => {
-    if (!selectedPlaylist) { setMessage("Önce bir playlist oluştur."); setTab("playlists"); return; }
-    const { error } = await supabase.from("playlist_tracks").upsert(
-      { playlist_id: selectedPlaylist, track_id: song.trackId, song }, { onConflict: "playlist_id,track_id" }
-    );
-    setMessage(error ? "Şarkı listeye eklenemedi." : "Şarkı playlist'e eklendi.");
-    if (!error && selectedPlaylist === activePlaylist) setPlaylistSongs((items) => [song, ...items.filter((item) => item.trackId !== song.trackId)]);
-  };
-
-  const visibleSongs = tab === "favorites" ? favorites : tab === "playlists" ? playlistSongs : songs;
-  const title = tab === "discover" ? "Yeni sesler keşfet." : tab === "favorites" ? "Favorilerin." : "Senin listelerin.";
 
   return (
     <main className="music-app">
       <aside className="music-sidebar">
         <Link href="/" className="brand"><span className="brand-mark"><AudioLines size={20} /></span> VYBE<span className="lime">.</span></Link>
-        <span className="side-label">MENÜ</span>
-        <button className={tab === "discover" ? "side-link active" : "side-link"} onClick={() => setTab("discover")}><Compass size={18}/> Keşfet</button>
-        <button className={tab === "favorites" ? "side-link active" : "side-link"} onClick={() => setTab("favorites")}><Heart size={18}/> Favoriler</button>
-        <button className={tab === "playlists" ? "side-link active" : "side-link"} onClick={() => setTab("playlists")}><ListMusic size={18}/> Playlistler</button>
+        <span className="side-label">KEŞİF</span>
+        {TABS.map((item) => (
+          <button key={item.id} className={tab === item.id ? "side-link active" : "side-link"} onClick={() => setTab(item.id)}>
+            <item.icon size={16} /> {item.label}
+          </button>
+        ))}
         <div className="sidebar-bottom"><span>{displayName}</span><SignOutButton /></div>
       </aside>
-
       <section className="music-main">
         <header className="music-topbar">
-          <span className="eyebrow"><Sparkles size={13}/> YOUR PERSONAL SOUNDSPACE</span>
+          <span className="eyebrow"><Sparkles size={13} /> {COPY[tab].kicker}</span>
           <div className="mobile-user">{displayName}<SignOutButton /></div>
         </header>
-        <div className="music-heading">
-          <div><span className="side-label">VYBE / {tab.toUpperCase()}</span><h1>{title}</h1><p>Bugün hangi ritmi arıyorsun?</p></div>
-          {tab === "playlists" && <form className="create-list" onSubmit={createPlaylist}><input value={playlistName} onChange={(e) => setPlaylistName(e.target.value)} placeholder="Yeni playlist adı" maxLength={40}/><button aria-label="Playlist oluştur"><Plus size={18}/></button></form>}
-        </div>
-
-        {tab === "discover" && <>
-          <form className="music-search" onSubmit={(e) => { e.preventDefault(); void runSearch(); }}><Search size={19}/><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Şarkı veya sanatçı ara..."/><button disabled={loading}>{loading ? "Aranıyor..." : "Ara"}</button></form>
-          <div className="discover-chips">{["Türkçe Pop", "Pop Hits", "Hip-Hop", "Rock", "Electronic", "Indie"].map((genre) => <button key={genre} onClick={() => { setQuery(genre); void runSearch(genre); }}>{genre}</button>)}</div>
-        </>}
-        {tab === "playlists" && <div className="playlist-tools"><select value={selectedPlaylist} onChange={(e) => setSelectedPlaylist(e.target.value)}><option value="">Şarkı eklemek için liste seç</option>{playlists.map((list) => <option key={list.id} value={list.id}>{list.name}</option>)}</select><div className="playlist-tabs">{playlists.map((list) => <button className={activePlaylist === list.id ? "playlist-chip selected" : "playlist-chip"} key={list.id} onClick={() => setActivePlaylist(list.id)}>{list.name}</button>)}</div></div>}
-        {message && <p className="music-message">{message}</p>}
-        <div className="section-caption"><span>{tab === "favorites" ? "KAYDETTİĞİN PARÇALAR" : tab === "playlists" ? (playlists.find((item) => item.id === activePlaylist)?.name || "PLAYLIST SEÇ") : "SENİN İÇİN SEÇİLDİ"}</span><small>{visibleSongs.length} PARÇA</small></div>
-        {visibleSongs.length ? <div className="song-grid">{visibleSongs.map((song) => <SongCard key={song.trackId} song={song} favorite={favorites.some((item) => item.trackId === song.trackId)} onPlay={setCurrentSong} onFavorite={toggleFavorite} onAddToPlaylist={addToPlaylist}/>)}</div> : <div className="empty-state">{loading ? "Müzikler yükleniyor..." : tab === "favorites" ? "Henüz favori parçan yok. Keşfet bölümünden kalp simgesine dokun." : tab === "playlists" ? "Bir playlist oluştur veya listelerinden birini seç." : "Sonuç bulunamadı. Başka bir arama dene."}</div>}
+        <div className="music-heading"><div><h1>{COPY[tab].title}</h1><p>Yalnızca lisansı üçüncü taraf oynatıma açık Audius parçaları. Belirsiz ve tüm hakları saklı kayıtlar gelmez.</p></div></div>
+        {library.message && <p className="music-message">{library.message}</p>}
+        {tab === "discover" && <DiscoverPanel favorites={library.favorites} onPlay={play} onFavorite={library.toggleFavorite} onAdd={add} />}
+        {(tab === "daily" || tab === "match" || tab === "gems" || tab === "smart") && (
+          <PersonalPanel key={tab} mode={tab} favorites={library.favorites} onPlay={play} onFavorite={library.toggleFavorite} onAdd={add} onSaveSmart={library.saveSmart} />
+        )}
+        {tab === "favorites" && <SongGrid songs={library.favorites} favorites={library.favorites} empty="Henüz favorin yok." onPlay={play} onFavorite={library.toggleFavorite} onAdd={add} />}
+        {tab === "playlists" && (
+          <div>
+            <form className="create-list" onSubmit={(event) => { event.preventDefault(); if (playlistName.trim()) { void library.createPlaylist(playlistName.trim()); setPlaylistName(""); } }}>
+              <input value={playlistName} onChange={(event) => setPlaylistName(event.target.value)} placeholder="Yeni playlist adı" maxLength={40} />
+              <button>Oluştur</button>
+            </form>
+            <div className="playlist-tools">
+              <select value={selected} onChange={(event) => { setSelected(event.target.value); library.setActivePlaylist(event.target.value); }}>
+                <option value="">Liste seç</option>
+                {library.playlists.map((list) => <option key={list.id} value={list.id}>{list.name}</option>)}
+              </select>
+              {library.activePlaylist && <button className="text-action" onClick={() => void library.deletePlaylist(library.activePlaylist)}>Listeyi sil</button>}
+            </div>
+            <SongGrid songs={library.playlistSongs} favorites={library.favorites} empty="Bir liste seç veya oluştur." onPlay={play} onFavorite={library.toggleFavorite} onAdd={add} onRemove={library.removeFromPlaylist} />
+          </div>
+        )}
       </section>
-      <MiniPlayer song={currentSong} onClose={() => setCurrentSong(null)} />
+      <MiniPlayer song={song} onClose={() => setQueue([])} onPrev={() => setIndex((value) => Math.max(0, value - 1))} onNext={() => setIndex((value) => Math.min(queue.length - 1, value + 1))} />
     </main>
   );
 }

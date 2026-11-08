@@ -1,44 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AudioLines, Chrome, ArrowLeft } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { ArrowLeft, AudioLines, Clock3 } from "lucide-react";
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [note, setNote] = useState("Davetli erişim açılınca yalnızca listedeki hesaplar girecek.");
 
-  async function signInWithGoogle() {
-    setLoading(true);
-    setError("");
-    const next = new URLSearchParams(window.location.search).get("next") || "/dashboard";
-    try {
-      const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
-        }
-      });
-      if (authError) throw authError;
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Giriş başlatılamadı.");
-      setLoading(false);
-    }
-  }
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    if (query.get("access") === "denied") setNote("Bu hesap beş kişilik özel betada değil. Hesap silinmedi.");
+    else if (query.get("closed") === "1") setNote("Erişim henüz açılmadı. Mevcut hesaplar duruyor.");
+    else if (query.get("setup") === "1") setNote("Supabase ayarı eksik.");
+    else if (query.get("error")) setNote("Giriş tamamlanamadı.");
+  }, []);
 
-  return <main className="auth-page">
-    <Link href="/" className="back-link"><ArrowLeft size={16}/> Ana sayfa</Link>
-    <section className="auth-card">
-      <Link href="/" className="brand auth-brand"><span className="brand-mark"><AudioLines size={21}/></span> VYBE<span className="lime">.</span></Link>
-      <span className="eyebrow">WELCOME TO YOUR SOUNDSPACE</span>
-      <h1>Ritmine<br/><em>giriş yap.</em></h1>
-      <p>VYBE hesabınla favorilerine ve playlistlerine her yerden ulaş.</p>
-      <button className="google-button" onClick={signInWithGoogle} disabled={loading}><Chrome size={18}/>{loading ? "Google'a yönlendiriliyorsun..." : "Google ile devam et"}</button>
-      {error && <p className="error-message">{error}</p>}
-      <small className="legal-note">Devam ederek kullanım koşullarını ve gizlilik politikasını kabul etmiş olursun.</small>
-    </section>
-    <div className="auth-decoration">VYBE / 001</div>
-  </main>;
+  return (
+    <main className="auth-page">
+      <Link href="/" className="back-link"><ArrowLeft size={16} /> Ana sayfa</Link>
+      <section className="auth-card">
+        <Link href="/" className="brand auth-brand"><span className="brand-mark"><AudioLines size={21} /></span> VYBE<span className="lime">.</span></Link>
+        <span className="eyebrow">PRIVATE LISTENING SPACE</span>
+        <h1>Biraz<br /><em>sonra.</em></h1>
+        <p>VYBE kapalı testte. Yeni kayıt yok. Google girişi arayüzden kaldırıldı; OAuth kodu duruyor.</p>
+        <div className="coming-soon"><Clock3 size={17} /> YAKINDA</div>
+        <small className="legal-note">{note}</small>
+      </section>
+      <div className="auth-decoration">VYBE / PRIVATE BETA</div>
+    </main>
+  );
 }

@@ -6,6 +6,13 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  if (process.env.VYBE_ACCESS_ENABLED !== "true") redirect("/login?closed=1");
+
+  const email = user.email?.trim().toLowerCase();
+  const { data, error } = email
+    ? await supabase.from("allowed_users").select("email").eq("email", email).eq("is_active", true).maybeSingle()
+    : { data: null, error: null };
+  if (error || !data) redirect("/login?access=denied");
 
   return (
     <MusicDashboard

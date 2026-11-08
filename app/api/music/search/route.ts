@@ -1,21 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
+import { searchAudius } from "@/lib/music/catalog";
+import { guardMusic } from "@/lib/music/session";
+import { takeUnseen } from "@/lib/music/unseen";
 
 export async function GET(request: NextRequest) {
   const query = request.nextUrl.searchParams.get("q")?.trim();
   if (!query) return NextResponse.json({ error: "Arama terimi gerekli." }, { status: 400 });
+  const { user, supabase, denied } = await guardMusic();
+  if (denied || !user || !supabase) return denied ?? NextResponse.json({ error: "Giriş gerekli." }, { status: 401 });
 
   try {
-    const url = new URL("https://itunes.apple.com/search");
-    url.searchParams.set("term", query);
-    url.searchParams.set("entity", "song");
-    url.searchParams.set("limit", "24");
-    url.searchParams.set("country", "tr");
-
-    const response = await fetch(url, { next: { revalidate: 300 } });
-    if (!response.ok) throw new Error("iTunes yanıt vermedi.");
-    const data = await response.json();
-    return NextResponse.json(data.results ?? []);
+    const songs = await searchAudius(query, true);
+    if (!songs.length) {
+      return NextResponse.json({ results: [], exhausted: true, note: "Bu aramada açık lisanslı parça yok." });
+    }
+    const picked = await takeUnseen(supabase, songs, 12, "search");
+    if (picked.error) return NextResponse.json({ error: picked.error, results: [] }, { status: 503 });
+    return NextResponse.json({ results: picked.songs, exhausted: picked.exhausted });
   } catch {
-    return NextResponse.json({ error: "Müzik servisine ulaşılamadı." }, { status: 502 });
+    return NextResponse.json({ error: "Audius'a ulaşılamadı." }, { status: 502 });
   }
 }
