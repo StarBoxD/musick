@@ -31,7 +31,8 @@ export async function middleware(request: NextRequest) {
   const email = user.email?.trim().toLowerCase();
   if (!email) return NextResponse.redirect(new URL("/login?access=denied", request.url));
   const { data, error } = await supabase.from("allowed_users").select("email").eq("email", email).eq("is_active", true).maybeSingle();
-  if (error || !data) return NextResponse.redirect(new URL("/login?access=denied", request.url));
+  if (error) return NextResponse.redirect(new URL("/login?error=allowlist_setup", request.url));
+  if (!data) return NextResponse.redirect(new URL("/login?access=denied", request.url));
   return response;
 }
 

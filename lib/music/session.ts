@@ -30,7 +30,10 @@ export async function guardMusic() {
     return { supabase, user: null, denied: NextResponse.json({ error: "Erişim yok." }, { status: 403 }) };
   }
   const { data, error } = await supabase.from("allowed_users").select("email").eq("email", email).eq("is_active", true).maybeSingle();
-  if (error || !data) {
+  if (error) {
+    return { supabase, user: null, denied: NextResponse.json({ error: "Beta erişim listesi okunamadı. Supabase migration ayarlarını kontrol edin." }, { status: 503 }) };
+  }
+  if (!data) {
     return { supabase, user: null, denied: NextResponse.json({ error: "Bu hesap özel betada değil." }, { status: 403 }) };
   }
   return { supabase, user, denied: null };

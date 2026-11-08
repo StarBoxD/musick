@@ -10,17 +10,33 @@ npm run dev
 ```
 Fill `.env.local` with the Supabase project URL and anon/publishable key. Never put a service-role key in a `NEXT_PUBLIC_` variable or commit secrets.
 
-## 2. Create Supabase project
+## 2. Create Supabase project and apply the database
 Create a project in Supabase. In Project Settings > API, copy the Project URL and anon/publishable key into `.env.local`.
 
-In SQL Editor, run `supabase/schema.sql`.
+In Supabase SQL Editor, run these files in this order:
+1. `supabase/schema.sql`
+2. `supabase/migrations/20261108_music_features.sql`
+3. `supabase/migrations/20261108_private_audius_beta.sql`
+4. `supabase/migrations/20261109_discovery.sql`
+
+**Do not stop after `supabase/schema.sql`.** The base schema does not create `public.allowed_users`, but the Google callback, middleware, dashboard, and music API guards all rely on that table. The private-beta migration creates it, its row-level security policy, and the five-active-account limit. The root-level `SUPABASE_SCHEMA.sql` is only a copy of the base schema; it is not a replacement for the migrations.
+
+Before the first Google login, add the exact Google account email to the allowlist from the Supabase SQL Editor. For example:
+```sql
+insert into public.allowed_users (email)
+values (lower('you@example.com'))
+on conflict (email) do update set is_active = true;
+```
+Replace the example with the real account email. The private beta permits at most five active emails. A Google account that is not listed is intentionally rejected, even when Google authentication itself succeeds.
 
 ## 3. Enable Google sign-in
-In Supabase Authentication > Providers > Google, enable Google and enter the OAuth Client ID and Client Secret from Google Cloud Console.
-In Google Cloud Console, create an OAuth client of type Web application. Add the Supabase callback URL shown in the Supabase Google provider settings as an Authorized redirect URI.
-In Supabase Authentication > URL Configuration:
-- Site URL: `https://vybe.izgura.com`
-- Redirect URLs: `http://localhost:3000/auth/callback` and `https://vybe.izgura.com/auth/callback`
+1. In Google Cloud Console, create an OAuth client with application type **Web application**.
+2. In Supabase > Authentication > Providers > Google, enable Google and paste the Google OAuth Client ID and Client Secret.
+3. In the same Supabase Google provider settings, copy the displayed **Callback URL**. Add that exact URL to Google Cloud Console under **Authorized redirect URIs**. It normally looks like `https://<project-ref>.supabase.co/auth/v1/callback`. This is Google's redirect URI; it is **not** your Next.js `/auth/callback` route.
+4. In Supabase > Authentication > URL Configuration, set:
+   - Site URL: `https://vybe.izgura.com`
+   - Redirect URLs: `http://localhost:3000/auth/callback` and `https://vybe.izgura.com/auth/callback`
+5. If using a Vercel preview URL or another domain, add its exact `/auth/callback` URL to Supabase's Redirect URLs too.
 
 The Google OAuth consent screen / app branding should identify VYBE. Use an email you control as the project owner; do not share Google passwords or OAuth secrets.
 

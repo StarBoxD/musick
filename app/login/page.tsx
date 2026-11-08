@@ -14,10 +14,22 @@ export default function LoginPage() {
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
-    if (query.get("access") === "denied") setMessage("Bu hesap beş kişilik özel betada değil. Hesap silinmedi.");
-    else if (query.get("closed") === "1") setMessage("Erişim henüz açılmadı. Mevcut hesaplar duruyor.");
-    else if (query.get("setup") === "1") setMessage("Supabase ayarı eksik.");
-    else if (query.get("error")) setMessage("Giriş bağlantısı tamamlanamadı.");
+    const authError = query.get("error");
+    if (query.get("access") === "denied") {
+      setMessage("Bu Google hesabının e-postası özel beta izin listesinde aktif değil.");
+    } else if (query.get("closed") === "1") {
+      setMessage("Erişim henüz açılmadı. Mevcut hesaplar duruyor.");
+    } else if (query.get("setup") === "1") {
+      setMessage("Supabase ortam değişkenleri eksik. NEXT_PUBLIC_SUPABASE_URL ve NEXT_PUBLIC_SUPABASE_ANON_KEY ayarlarını kontrol et.");
+    } else if (authError === "allowlist_setup") {
+      setMessage("Giriş doğrulandı ancak allowed_users tablosu okunamadı. Supabase SQL migration dosyalarını çalıştır.");
+    } else if (authError === "provider") {
+      setMessage("Google OAuth isteği reddedildi. Google Cloud ve Supabase Google sağlayıcısı ayarlarını kontrol et.");
+    } else if (authError === "exchange" || authError === "missing_code" || authError === "auth_callback") {
+      setMessage("Google dönüşü tamamlanamadı. Supabase callback URL ve yönlendirme izin listesini kontrol et.");
+    } else if (authError) {
+      setMessage("Giriş bağlantısı tamamlanamadı.");
+    }
   }, []);
 
   async function sendMagicLink(event: FormEvent<HTMLFormElement>) {
