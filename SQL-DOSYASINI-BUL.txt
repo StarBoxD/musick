@@ -1,0 +1,6 @@
+Supabase SQL kodu iki yerde bulunur:
+1) SUPABASE_SCHEMA.sql (ZIP ana klasöründe)
+2) vybe-cloud/supabase/schema.sql
+
+Supabase Dashboard > SQL Editor > New snippet alanına SQL dosyasının içeriğini yapıştırıp Run ile çalıştırın.
+GitHub reposuna da aynı dosyayı eklemek isterseniz SUPABASE_SCHEMA.sql dosyasını yükleyin.
