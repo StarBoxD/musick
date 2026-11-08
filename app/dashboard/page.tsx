@@ -6,7 +6,6 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  if (process.env.VYBE_ACCESS_ENABLED !== "true") redirect("/login?closed=1");
 
   const email = user.email?.trim().toLowerCase();
   const { data, error } = email

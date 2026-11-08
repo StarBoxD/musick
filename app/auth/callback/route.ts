@@ -13,9 +13,9 @@ export async function GET(request: Request) {
 
   const { data: { user } } = await supabase.auth.getUser();
   const email = user?.email?.trim().toLowerCase();
-  if (process.env.VYBE_ACCESS_ENABLED !== "true" || !email) {
+  if (!email) {
     await supabase.auth.signOut();
-    return NextResponse.redirect(new URL("/login?closed=1", origin));
+    return NextResponse.redirect(new URL("/login?access=denied", origin));
   }
 
   const { data, error } = await supabase.from("allowed_users").select("email").eq("email", email).eq("is_active", true).maybeSingle();

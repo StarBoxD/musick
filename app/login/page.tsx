@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, AudioLines, CheckCircle2, Loader2, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import GoogleSignIn from "@/components/auth/google-sign-in";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -55,7 +56,8 @@ export default function LoginPage() {
           </div>
         ) : (
           <>
-            <p>VYBE kapalı beta. Google butonu yok. Davetli e-postanla şifresiz giriş bağlantısı iste.</p>
+            <p>Kayıtlı beta hesabın varsa Google ile gir. İstersen davetli e-postana bağlantı da gönderilir.</p>
+            <GoogleSignIn />
             <form className="magic-link-form" onSubmit={sendMagicLink}>
               <label htmlFor="vybe-email">E-POSTA ADRESİ</label>
               <div className="magic-email-field">

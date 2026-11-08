@@ -1,6 +1,5 @@
 "use client";
 
-// Private beta hides this button. The Google OAuth call stays here so it can be shown again without rebuilding auth.
 import { useState } from "react";
 import { Chrome } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -31,6 +30,7 @@ export default function GoogleSignIn() {
       <button className="google-button" onClick={signInWithGoogle} disabled={loading}>
         <Chrome size={18} />{loading ? "Google'a yönlendiriliyorsun..." : "Google ile devam et"}
       </button>
+      <small className="legal-note">Yalnızca kayıtlı beta hesapları. Yeni kayıt açılmaz.</small>
       {error && <p className="error-message">{error}</p>}
     </>
   );

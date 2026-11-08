@@ -27,9 +27,6 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.redirect(new URL("/login", request.url));
-  if (process.env.VYBE_ACCESS_ENABLED !== "true") {
-    return NextResponse.redirect(new URL("/login?closed=1", request.url));
-  }
 
   const email = user.email?.trim().toLowerCase();
   if (!email) return NextResponse.redirect(new URL("/login?access=denied", request.url));

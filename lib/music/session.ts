@@ -25,9 +25,6 @@ export async function guardMusic() {
   if (!user || !supabase) {
     return { supabase, user: null, denied: NextResponse.json({ error: "Giriş gerekli." }, { status: 401 }) };
   }
-  if (process.env.VYBE_ACCESS_ENABLED !== "true") {
-    return { supabase, user: null, denied: NextResponse.json({ error: "Özel beta kapalı." }, { status: 403 }) };
-  }
   const email = user.email?.trim().toLowerCase();
   if (!email) {
     return { supabase, user: null, denied: NextResponse.json({ error: "Erişim yok." }, { status: 403 }) };
