@@ -11,7 +11,10 @@ export default async function DashboardPage() {
   const { data, error } = email
     ? await supabase.from("allowed_users").select("email").eq("email", email).eq("is_active", true).maybeSingle()
     : { data: null, error: null };
-  if (error) redirect("/login?error=allowlist_setup");
+  if (error) {
+    console.error("[dashboard] Allowlist lookup failed:", error.code, error.message);
+    redirect("/login?error=allowlist_setup");
+  }
   if (!data) redirect("/login?access=denied");
 
   return (

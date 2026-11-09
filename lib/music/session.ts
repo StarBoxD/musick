@@ -31,6 +31,7 @@ export async function guardMusic() {
   }
   const { data, error } = await supabase.from("allowed_users").select("email").eq("email", email).eq("is_active", true).maybeSingle();
   if (error) {
+    console.error("[api/music] Allowlist lookup failed:", error.code, error.message);
     return { supabase, user: null, denied: NextResponse.json({ error: "Beta erişim listesi okunamadı. Supabase migration ayarlarını kontrol edin." }, { status: 503 }) };
   }
   if (!data) {

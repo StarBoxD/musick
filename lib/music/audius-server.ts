@@ -20,16 +20,11 @@ type AudiusTrack = {
 
 const API = "https://api.audius.co/v1";
 
-/** Explicit third-party playback only. Blank and "all rights reserved" stay out. */
+/** Personal listening space playback. Streamable tracks on Audius are accepted. */
 export function acceptedLicense(license?: string | null) {
   const value = license?.trim() ?? "";
-  if (!value || /all rights reserved/i.test(value)) return null;
-  if (/non-?commercial|\bnc\b|by-nc/i.test(value)) return null;
-  if (/open music license|\bOML\b/i.test(value)) return value;
-  if (/\bcc0\b|public domain/i.test(value)) return value;
-  if (/cc by(?!-nc)\b/i.test(value)) return value;
-  if (/^attribution(?!-noncommercial)/i.test(value)) return value;
-  return null;
+  if (!value) return "Audius Stream";
+  return value;
 }
 
 function playable(track: AudiusTrack) {
@@ -37,7 +32,6 @@ function playable(track: AudiusTrack) {
   const ownKey = process.env.AUDIUS_API_KEY;
   const keyOk = !keys?.length || Boolean(ownKey && keys.includes(ownKey));
   return Boolean(
-    acceptedLicense(track.license) &&
     track.id != null &&
     track.is_streamable === true &&
     track.is_stream_gated !== true &&
@@ -45,7 +39,7 @@ function playable(track: AudiusTrack) {
     !track.stream_conditions &&
     track.access?.stream === true &&
     track.stream?.url &&
-    (track.duration ?? 0) > 45 &&
+    (track.duration ?? 0) > 40 &&
     keyOk
   );
 }

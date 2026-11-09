@@ -10,6 +10,10 @@ export async function GET(request: Request) {
   // Never display the raw provider description because it can contain details
   // that should remain in server logs.
   if (searchParams.get("error")) {
+    const desc = searchParams.get("error_description") ?? "";
+    if (/izin listesinde de[gğ]il|Database error saving new user/i.test(desc)) {
+      return NextResponse.redirect(new URL("/login?access=denied", origin));
+    }
     return NextResponse.redirect(new URL("/login?error=provider", origin));
   }
   if (!code) {
@@ -51,7 +55,7 @@ export async function GET(request: Request) {
   // A missing table / SQL / RLS configuration is not the same as an
   // uninvited user. Keep those two cases distinguishable for troubleshooting.
   if (error) {
-    console.error("[auth/callback] Allowlist lookup failed:", error.message);
+    console.error("[auth/callback] Allowlist lookup failed:", error.code, error.message);
     await supabase.auth.signOut();
     return NextResponse.redirect(new URL("/login?error=allowlist_setup", origin));
   }

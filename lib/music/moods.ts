@@ -3,19 +3,19 @@ import type { Mood } from "@/types/music";
 export const MOODS: Mood[] = ["Happy", "Sad", "Chill", "Energetic", "Romantic", "Focus", "Nostalgic", "Dark"];
 
 const MOOD_TERMS: Record<Mood, string[]> = {
-  Happy: ["feel good pop", "happy dance", "upbeat pop"],
-  Sad: ["sad piano", "heartbreak ballad", "melancholy indie"],
-  Chill: ["chillhop", "acoustic chill", "lofi beats"],
-  Energetic: ["workout edm", "high energy rock", "drum and bass"],
-  Romantic: ["romantic soul", "love song rnb", "slow love"],
-  Focus: ["focus instrumental", "minimal piano", "study ambient"],
-  Nostalgic: ["90s pop", "2000s rnb", "old school soul"],
-  Dark: ["dark pop", "darkwave", "gothic rock"],
+  Happy: ["turkce pop", "türkçe pop", "hareketli pop türkçe", "neşeli türkçe"],
+  Sad: ["turkce slow", "türkçe akustik", "hüzünlü türkçe", "duygusal türkçe slow"],
+  Chill: ["turkce lofi", "türkçe lofi", "sakin türkçe", "akustik türkçe"],
+  Energetic: ["turkce rap", "türkçe rap", "türkçe trap", "türkçe remix"],
+  Romantic: ["turkce ask sarkilari", "türkçe aşk şarkıları", "romantik türkçe", "türkçe slow aşk"],
+  Focus: ["turkce enstrumantal", "türkçe piyano", "türkçe ney fon", "türkçe akustik gitar"],
+  Nostalgic: ["90lar turkce pop", "90lar türkçe pop", "2000ler turkce pop", "anadolu rock", "yeşilçam müzikleri"],
+  Dark: ["turkce rock", "türkçe alternatif rock", "mor ve ötesi", "duman", "şebnem ferah"],
 };
 
-const GEM_TERMS = ["bedroom pop", "indie folk", "leftfield electronic", "jazz trio"];
-const POPULAR_TERMS = ["top hits", "today hits"];
-const DAILY_TERMS = ["fresh finds", "new music", "alternative pop"];
+const GEM_TERMS = ["türkçe indie", "türkçe alternatif", "keşif türkçe", "bağımsız türkçe"];
+const POPULAR_TERMS = ["turkce pop hit", "türkçe en çok dinlenen", "türkçe hit 2024", "türkçe popüler"];
+const DAILY_TERMS = ["turkce müzik", "türkçe şarkılar", "türkçe yeni", "türkçe pop"];
 
 export function termsFor(kind: "mood" | "gems" | "daily" | "popular", mood?: Mood) {
   if (kind === "mood" && mood) return MOOD_TERMS[mood];
