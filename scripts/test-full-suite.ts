@@ -103,12 +103,13 @@ async function runAllTests() {
   const d6 = evaluateAudiusTrack({ ...baseTrack, is_delete: true });
   check("1. Lisans Filtresi", "is_delete: true parçalar elenir", !d6.allowed && d6.reason === "DELETED", `reason=${!d6.allowed ? d6.reason : ""}`);
 
-  // 1.7 Geçersiz ve sahte streaming URL denetimi
+  // 1.7 Geçersiz ve sahte streaming URL denetimi (fakeaudius.co, audius.co.attacker.com vb.)
   const validUrl1 = isValidStreamUrl("https://api.audius.co/v1/tracks/123/stream?app_name=VYBE");
   const validUrl2 = isValidStreamUrl("https://audius-creator-9.theblueprint.xyz/tracks/cidstream/xyz");
   const badUrlHttp = isValidStreamUrl("http://api.audius.co/v1/tracks/123/stream");
   const badUrlFakeDomain = isValidStreamUrl("https://fakeaudius.co/v1/tracks/123/stream");
-  const badUrlSubdomainAttacker = isValidStreamUrl("https://audius.co.evil.com/v1/tracks/123/stream");
+  const badUrlSubdomainAttacker = isValidStreamUrl("https://audius.co.attacker.com/v1/tracks/123/stream");
+  const badUrlMyAudius = isValidStreamUrl("https://myaudius.co/stream");
   const badUrlPhishing = isValidStreamUrl("https://audius-phishing.org/stream");
   const urlCheckPassed =
     validUrl1 &&
@@ -116,13 +117,14 @@ async function runAllTests() {
     !badUrlHttp &&
     !badUrlFakeDomain &&
     !badUrlSubdomainAttacker &&
+    !badUrlMyAudius &&
     !badUrlPhishing;
 
   check(
     "1. Lisans Filtresi",
-    "Sahte alan adları (fakeaudius.co, audius.co.evil.com) ve güvensiz URL'ler engellenir",
+    "Sahte alan adları (fakeaudius.co, audius.co.attacker.com, myaudius.co) ve güvensiz URL'ler engellenir",
     urlCheckPassed,
-    `validUrls=${validUrl1 && validUrl2}, fakeBlocked=${!badUrlFakeDomain && !badUrlSubdomainAttacker && !badUrlPhishing}`
+    `validUrls=${validUrl1 && validUrl2}, fakeBlocked=${!badUrlFakeDomain && !badUrlSubdomainAttacker && !badUrlMyAudius && !badUrlPhishing}`
   );
 
   // 1.8 API 500 fail-closed

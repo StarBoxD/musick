@@ -201,36 +201,40 @@ recordTest(
 );
 
 // -------------------------------------------------------------
-// Senaryo 7: Geçersiz ve Sahte (Lookalike) Streaming URL'leri
+// Senaryo 7: Geçersiz ve Sahte (Lookalike / Suffix) Streaming URL'leri
 // -------------------------------------------------------------
-const badUrl1 = "http://api.audius.co/v1/tracks/123/stream"; // Non-HTTPS (plain HTTP)
-const badUrl2 = "https://fakeaudius.co/v1/tracks/123/stream"; // Lookalike domain
-const badUrl3 = "https://audius.co.attacker.com/v1/tracks/123/stream"; // Suffix attacker domain
-const badUrl4 = "https://audius-phishing.org/stream"; // Lookalike domain
-const badUrl5 = "javascript:evil()"; // Protocol injection
+const fakeUrls = [
+  "http://api.audius.co/v1/tracks/123/stream", // Non-HTTPS (plain HTTP)
+  "https://fakeaudius.co/v1/tracks/123/stream", // Lookalike domain (starts with fake)
+  "https://myaudius.co/stream", // Lookalike domain
+  "https://audius.co.attacker.com/v1/tracks/123/stream", // Suffix domain takeover
+  "https://sub.fakeaudius.co/stream", // Subdomain of fake domain
+  "https://audius-phishing.org/stream", // Phishing domain
+  "https://not-really-audius.com/stream", // Infix fake
+  "javascript:alert(1)", // Protocol injection
+  "https://audius.co", // Missing stream path
+];
 
-const goodAudiusApiUrl = "https://api.audius.co/v1/tracks/12345/stream?app_name=VYBE";
-const goodCreatorNodeUrl = "https://audius-creator-9.theblueprint.xyz/tracks/cidstream/baeaaaiqse?signature=xyz";
+const genuineUrls = [
+  "https://audius.co/v1/tracks/12345/stream?app_name=VYBE",
+  "https://api.audius.co/v1/tracks/12345/stream?app_name=VYBE",
+  "https://creatornode.audius.co/tracks/12345/stream",
+  "https://audius-creator-9.theblueprint.xyz/tracks/cidstream/baeaaaiqse?signature=xyz",
+];
 
-const vBad1 = isValidStreamUrl(badUrl1);
-const vBad2 = isValidStreamUrl(badUrl2);
-const vBad3 = isValidStreamUrl(badUrl3);
-const vBad4 = isValidStreamUrl(badUrl4);
-const vBad5 = isValidStreamUrl(badUrl5);
+const fakeResults = fakeUrls.map((u) => ({ url: u, valid: isValidStreamUrl(u) }));
+const genuineResults = genuineUrls.map((u) => ({ url: u, valid: isValidStreamUrl(u) }));
 
-const vGood1 = isValidStreamUrl(goodAudiusApiUrl);
-const vGood2 = isValidStreamUrl(goodCreatorNodeUrl);
-
-const allBadRejected = !vBad1 && !vBad2 && !vBad3 && !vBad4 && !vBad5;
-const allGoodAccepted = vGood1 && vGood2;
+const allFakesRejected = fakeResults.every((r) => !r.valid);
+const allGenuineAccepted = genuineResults.every((r) => r.valid);
 
 recordTest(
   7,
-  "Geçersiz ve Sahte (Lookalike) streaming URL denetimi",
-  "Sahte alan adları (fakeaudius.co, audius.co.evil.com) ve HTTP engellenir, gerçek Audius URL'leri kabul edilir",
-  `Sahte engellendi: ${allBadRejected}, Gerçek onaylandı: ${allGoodAccepted}`,
-  allBadRejected && allGoodAccepted,
-  { vBad1, vBad2, vBad3, vBad4, vBad5, vGood1, vGood2 }
+  "Geçersiz ve Sahte (Lookalike / Suffix) streaming URL denetimi",
+  "Sahte alan adları (fakeaudius.co, audius.co.attacker.com, myaudius.co) engellenir, gerçek Audius URL'leri kabul edilir",
+  `Sahte engellendi: ${allFakesRejected} (${fakeResults.length}/${fakeResults.length}), Gerçek onaylandı: ${allGenuineAccepted} (${genuineResults.length}/${genuineResults.length})`,
+  allFakesRejected && allGenuineAccepted,
+  { fakeResults, genuineResults }
 );
 
 // -------------------------------------------------------------

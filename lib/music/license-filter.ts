@@ -215,12 +215,38 @@ export function buildVerifiedStreamUrl(trackId: string | number): string {
  * decentralized Audius creator node domains are allowed.
  *
  * Strict boundary rules:
- * - Rejects non-HTTPS schemes.
- * - Rejects lookalike / suffix domains like fakeaudius.co, audius.co.attacker.com,
- *   audius-phishing.org, myaudius.net.
+ * - Must be https: protocol.
+ * - Hostname must be exactly "audius.co" OR end with ".audius.co" (with a valid subdomain before the dot).
+ * - OR match official decentralized creator nodes (audius-creator-X.theblueprint.xyz).
+ * - Explicitly rejects lookalikes like:
+ *     - fakeaudius.co
+ *     - audius.co.attacker.com
+ *     - myaudius.co
+ *     - audius-phishing.org
  */
-const AUDIUS_OFFICIAL_DOMAIN_REGEX = /^(?:[a-zA-Z0-9-]+\.)*audius\.co$/i;
-const AUDIUS_DECENTRALIZED_NODE_REGEX = /^audius-creator-[0-9]+\.theblueprint\.xyz$/i;
+export function isGenuineAudiusHostname(hostname: string): boolean {
+  const host = hostname.toLowerCase().trim();
+  if (!host) return false;
+
+  // 1. Exactly audius.co
+  if (host === "audius.co") return true;
+
+  // 2. Genuine subdomain of audius.co (*.audius.co)
+  if (host.endsWith(".audius.co")) {
+    const sub = host.slice(0, -".audius.co".length);
+    return (
+      sub.length > 0 &&
+      /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*$/.test(sub)
+    );
+  }
+
+  // 3. Genuine Audius decentralized creator nodes
+  if (/^audius-creator-[0-9]+\.theblueprint\.xyz$/.test(host)) {
+    return true;
+  }
+
+  return false;
+}
 
 /**
  * Validates whether a streaming URL meets strict HTTPS Audius stream standards.
@@ -231,13 +257,8 @@ export function isValidStreamUrl(url: string): boolean {
     const parsed = new URL(url);
     if (parsed.protocol !== "https:") return false;
 
-    const hostname = parsed.hostname.toLowerCase();
-
     // Strict hostname verification
-    const isOfficialAudius = AUDIUS_OFFICIAL_DOMAIN_REGEX.test(hostname);
-    const isVerifiedNode = AUDIUS_DECENTRALIZED_NODE_REGEX.test(hostname);
-
-    if (!isOfficialAudius && !isVerifiedNode) {
+    if (!isGenuineAudiusHostname(parsed.hostname)) {
       return false;
     }
 
