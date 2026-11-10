@@ -56,6 +56,7 @@ Supabase SQL Editor'de aşağıdaki migration dosyaları **belirtilen sıra ile*
 4. `supabase/migrations/20261109_discovery.sql` — Dinleme geçmişi (`seen_tracks`) ve günün parçası (`daily_vybes`) tabloları.
 5. `supabase/migrations/20261110_api_role_grants.sql` — `authenticated` rolüne tüm 7 tablo için gerekli `SELECT, INSERT, UPDATE, DELETE` GRANT yetkileri.
 6. `supabase/migrations/20261110_discovery_allowlist_hardening.sql` — `seen_tracks`, `daily_vybes` ve `claim_unseen_tracks` üzerinde allowlist (`allowed_users.is_active = true`) zorunluluğunu pekiştiren güvenlik güncellemesi.
+7. `supabase/migrations/20261110_allowlist_rls_hardening.sql` — Tüm 7 tabloda (`allowed_users`, `profiles`, `favorites`, `playlists`, `playlist_tracks`, `seen_tracks`, `daily_vybes`) eski permissif politikaları tamamen temizleyen ve allowlist (`allowed_users.is_active = true`) ile `auth.uid() = user_id` şartını tavizsiz zorunlu kılan master RLS sertleştirmesi.
 
 ### İlk Giriş Öncesi Kullanıcı Yetkilendirmesi
 Supabase SQL Editor üzerinden izin verilecek e-posta adresini ekleyin:

@@ -235,6 +235,10 @@ async function runAllTests() {
     path.resolve(process.cwd(), "supabase/migrations/20261110_discovery_allowlist_hardening.sql"),
     "utf-8"
   );
+  const migrationMasterHardening = fs.readFileSync(
+    path.resolve(process.cwd(), "supabase/migrations/20261110_allowlist_rls_hardening.sql"),
+    "utf-8"
+  );
 
   const hasAllowlistInSeenTracks =
     migration20261109.includes("allowed_users au") &&
@@ -251,6 +255,17 @@ async function runAllTests() {
     migration20261110.includes("claim_unseen_tracks") &&
     migration20261110.includes("User is not in active allowed_users list");
 
+  const hasMasterHardeningAllTables =
+    migrationMasterHardening.includes("drop policy if exists \"Users manage own favorites\"") &&
+    migrationMasterHardening.includes("drop policy if exists \"Users manage own playlists\"") &&
+    migrationMasterHardening.includes("drop policy if exists \"Users manage tracks in own playlists\"") &&
+    migrationMasterHardening.includes("Allowed users manage own profile") &&
+    migrationMasterHardening.includes("Allowed users manage own favorites") &&
+    migrationMasterHardening.includes("Allowed users manage own playlists") &&
+    migrationMasterHardening.includes("Allowed users manage tracks in own playlists") &&
+    migrationMasterHardening.includes("Allowed users manage own seen tracks") &&
+    migrationMasterHardening.includes("Allowed users manage own daily vybe");
+
   check(
     "5. Supabase RLS Güçlendirmesi",
     "seen_tracks ve daily_vybes politikalarında auth.uid() ve allowed_users.is_active zorunludur",
@@ -263,6 +278,13 @@ async function runAllTests() {
     "Zayıf politikaları kaldıran ve claim_unseen_tracks'i sertleştiren migration mevcuttur",
     hasHardeningMigration,
     "20261110_discovery_allowlist_hardening.sql doğrulandı"
+  );
+
+  check(
+    "5. Supabase RLS Güçlendirmesi",
+    "Tüm 7 tabloda eski permissive politikaları kaldıran genel RLS sertleştirme migration'ı mevcuttur",
+    hasMasterHardeningAllTables,
+    "20261110_allowlist_rls_hardening.sql (7 tablo allowlist drop/create doğrulaması tamamlandı)"
   );
 
   // -------------------------------------------------------------
