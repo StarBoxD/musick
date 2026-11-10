@@ -51,13 +51,29 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
     <main className="music-app">
       <aside className="music-sidebar">
         <Link href="/" className="brand"><span className="brand-mark"><AudioLines size={20} /></span> VYBE<span className="lime">.</span></Link>
-        <span className="side-label">KEŞİF</span>
-        {TABS.map((item) => (
-          <button key={item.id} className={tab === item.id ? "side-link active" : "side-link"} onClick={() => setTab(item.id)}>
-            <item.icon size={16} /> {item.label}
-          </button>
-        ))}
-        <div className="sidebar-bottom"><span>{displayName}</span><SignOutButton /></div>
+        <nav className="side-nav">
+          <span className="side-label">KEŞİF</span>
+          {TABS.slice(0, 5).map((item) => (
+            <button key={item.id} className={tab === item.id ? "side-link active" : "side-link"} onClick={() => setTab(item.id)}>
+              <span className="side-icon"><item.icon size={16} /></span>
+              <span className="side-text">{item.label}</span>
+            </button>
+          ))}
+          <span className="side-label">KÜTÜPHANE</span>
+          {TABS.slice(5).map((item) => (
+            <button key={item.id} className={tab === item.id ? "side-link active" : "side-link"} onClick={() => setTab(item.id)}>
+              <span className="side-icon"><item.icon size={16} /></span>
+              <span className="side-text">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="side-user">
+            <span className="side-avatar">{displayName.trim().charAt(0).toUpperCase() || "V"}</span>
+            <div className="side-user-text"><b>{displayName}</b><small>Private beta</small></div>
+          </div>
+          <SignOutButton />
+        </div>
       </aside>
       <section className="music-main">
         <header className="music-topbar">

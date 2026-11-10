@@ -389,3 +389,191 @@
 .auth-error{color:#ffb4b4;margin:12px 0 0}
 .spin{animation:vybe-spin 1s linear infinite}
 @keyframes vybe-spin{to{transform:rotate(360deg)}}
+
+
+/* ===== Modern sidebar ===== */
+.music-sidebar {
+  padding: 26px 16px 18px;
+  gap: 6px;
+  background: linear-gradient(180deg, rgba(20, 16, 34, 0.72), rgba(10, 10, 16, 0.6));
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: inset -1px 0 0 rgba(196, 181, 253, 0.06);
+}
+.music-sidebar .brand {
+  padding: 6px 10px 18px;
+  font-size: 19px;
+  letter-spacing: 3px;
+}
+.music-sidebar .brand-mark {
+  background: linear-gradient(135deg, #d2ff5a, #7cf5c8);
+  box-shadow: 0 0 22px rgba(210, 255, 90, 0.35);
+}
+.side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+.side-label {
+  font: 600 9px "DM Mono", monospace;
+  letter-spacing: 2px;
+  color: #6f7385;
+  margin: 18px 12px 6px;
+}
+.side-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #a4a8b8;
+  padding: 8px 10px;
+  border-radius: 14px;
+  text-align: left;
+  font: 600 13px Manrope, sans-serif;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
+}
+.side-icon {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #b9b4cc;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.side-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  transform: translateX(2px);
+}
+.side-link:hover .side-icon {
+  background: rgba(196, 181, 253, 0.16);
+  color: #e3dcff;
+}
+.side-link.active {
+  background: linear-gradient(90deg, rgba(124, 92, 255, 0.24), rgba(210, 255, 90, 0.08));
+  border-color: rgba(196, 181, 253, 0.25);
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(124, 92, 255, 0.18);
+}
+.side-link.active::before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  width: 4px;
+  height: 22px;
+  border-radius: 0 4px 4px 0;
+  transform: translateY(-50%);
+  background: var(--lime);
+  box-shadow: 0 0 14px var(--lime);
+}
+.side-link.active .side-icon {
+  background: linear-gradient(135deg, #d2ff5a, #9be7ff);
+  color: #12140c;
+  box-shadow: 0 0 18px rgba(210, 255, 90, 0.4);
+}
+.sidebar-bottom {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+.side-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.side-avatar {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 800 14px Manrope, sans-serif;
+  color: #12101c;
+  background: linear-gradient(135deg, #c4b5fd, #ff8fc7 55%, #d2ff5a);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+.side-user-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.side-user-text b {
+  font-size: 12px;
+  color: #f4f1ea;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.side-user-text small {
+  font-size: 10px;
+  color: #8c8fa0;
+}
+.signout-button {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #b3b6c4;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.signout-button:hover {
+  background: rgba(255, 92, 140, 0.18);
+  border-color: rgba(255, 92, 140, 0.5);
+  color: #ff9cbc;
+}
+
+@media (max-width: 850px) {
+  .music-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    height: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 14px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .music-sidebar .brand { padding: 2px 4px 10px; }
+  .side-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 6px;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .side-nav::-webkit-scrollbar { display: none; }
+  .side-label { display: none; }
+  .side-link {
+    width: auto;
+    flex: none;
+    padding: 6px 12px 6px 6px;
+    font-size: 12px;
+  }
+  .side-link:hover { transform: none; }
+  .side-link.active::before { display: none; }
+  .side-icon { width: 28px; height: 28px; border-radius: 9px; }
+  .sidebar-bottom { display: none; }
+}
