@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import type { Song } from "@/types/music";
 import SignOutButton from "@/components/sign-out-button";
-import DiscoverPanel from "@/components/music/discover-panel";
+import DiscoverPanel, { PlaybackSource } from "@/components/music/discover-panel";
 import PersonalPanel from "@/components/music/personal-panel";
 import SongGrid from "@/components/music/song-grid";
 import MiniPlayer from "@/components/music/mini-player";
@@ -81,26 +81,62 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
   const [tab, setTab] = useState<Tab>("discover");
   const [queue, setQueue] = useState<Song[]>([]);
   const [index, setIndex] = useState(0);
+  const [playbackSource, setPlaybackSource] = useState<PlaybackSource | null>(null);
   const [playlistName, setPlaylistName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const song = queue[index] ?? null;
 
-  const play = (songs: Song[], nextIndex: number) => {
+  const play = (songs: Song[], nextIndex: number, source?: PlaybackSource) => {
     setQueue(songs);
     setIndex(nextIndex);
+    if (source) {
+      setPlaybackSource(source);
+    }
   };
 
   const fetchMoreSongs = async () => {
     try {
-      const { postMusic } = await import("@/lib/music/audius");
-      const data = await postMusic("/api/music/discover", { mood: "Chill" });
-      const fresh = (data.songs ?? []) as Song[];
-      if (fresh.length) {
-        setQueue((prev) => [...prev, ...fresh]);
-      } else {
-        library.setMessage("Tüm yeni parçalar dinlendi.");
+      if (!playbackSource) {
+        library.setMessage("Kuyruktaki tüm parçalar dinlendi.");
+        return;
       }
+
+      // 1. Mood kaynağından çalıyorsa kullanıcının seçtiği mood KORUNUR (Asla otomatik Chill'e geçilmez)
+      if (playbackSource.type === "mood" && playbackSource.mood) {
+        const { postMusic } = await import("@/lib/music/audius");
+        const data = await postMusic("/api/music/discover", { mood: playbackSource.mood });
+        const incoming = (data.songs ?? []) as Song[];
+        // Halihazırda kuyrukta olan parçaları ele (mükerrer ve sonsuz tekrarı önle)
+        const fresh = incoming.filter((s) => !queue.some((q) => q.trackId === s.trackId));
+
+        if (fresh.length > 0) {
+          setQueue((prev) => [...prev, ...fresh]);
+        } else {
+          library.setMessage(`${playbackSource.mood} kanalındaki tüm parçalar dinlendi.`);
+        }
+        return;
+      }
+
+      // 2. Kullanıcı çalma listesi çalıyorsa
+      if (playbackSource.type === "playlist") {
+        library.setMessage("Çalma listesi tamamlandı.");
+        return;
+      }
+
+      // 3. Arama sonuçları çalıyorsa
+      if (playbackSource.type === "search") {
+        library.setMessage("Arama sonuçlarındaki tüm parçalar dinlendi.");
+        return;
+      }
+
+      // 4. Günlük vybe
+      if (playbackSource.type === "daily") {
+        library.setMessage("Günün parçası tamamlandı.");
+        return;
+      }
+
+      library.setMessage("Kuyruktaki tüm parçalar dinlendi.");
     } catch {
       // sessizce geç
     }
@@ -369,7 +405,7 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
                       <button
                         type="button"
                         className="action-btn next-btn"
-                        onClick={() => play(library.playlistSongs, 0)}
+                        onClick={() => play(library.playlistSongs, 0, { type: "playlist", playlistId: activePlaylistObj.id })}
                       >
                         <Play size={15} fill="currentColor" />
                         <span>Tümünü Oynat</span>
@@ -405,7 +441,7 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
                   favorites={library.favorites}
                   pendingFavorites={library.pendingFavorites}
                   empty="Bu listede henüz parça yok. Radyoda veya aramada beğendiğin şarkılarda 'Listeye Ekle' butonuna bas."
-                  onPlay={play}
+                  onPlay={(songs, idx) => play(songs, idx, { type: "playlist", playlistId: activePlaylistObj.id })}
                   onFavorite={library.toggleFavorite}
                   onAdd={add}
                   onRemove={library.removeFromPlaylist}

@@ -103,16 +103,8 @@ with check (
   )
 );
 
-create policy "Allowed users delete own profile"
-on public.profiles for delete to authenticated
-using (
-  auth.uid() = id
-  and exists (
-    select 1 from public.allowed_users au
-    where au.email = pg_catalog.lower(pg_catalog.coalesce((select auth.jwt() ->> 'email'), ''))
-    and au.is_active = true
-  )
-);
+-- Profile deletion is cascade-only via auth.users; no direct DELETE policy granted.
+drop policy if exists "Allowed users delete own profile" on public.profiles;
 
 -- ============================================================================
 -- 3. favorites (user_id uuid, track_id text)
@@ -379,16 +371,8 @@ with check (
   )
 );
 
-create policy "Allowed users delete own seen tracks"
-on public.seen_tracks for delete to authenticated
-using (
-  auth.uid() = user_id
-  and exists (
-    select 1 from public.allowed_users au
-    where au.email = pg_catalog.lower(pg_catalog.coalesce((select auth.jwt() ->> 'email'), ''))
-    and au.is_active = true
-  )
-);
+-- Seen tracks deletion is not permitted for authenticated users (audit / anti-repetition integrity).
+drop policy if exists "Allowed users delete own seen tracks" on public.seen_tracks;
 
 -- ============================================================================
 -- 7. daily_vybes (user_id uuid, day date, track_id text)
@@ -444,16 +428,8 @@ with check (
   )
 );
 
-create policy "Allowed users delete own daily vybe"
-on public.daily_vybes for delete to authenticated
-using (
-  auth.uid() = user_id
-  and exists (
-    select 1 from public.allowed_users au
-    where au.email = pg_catalog.lower(pg_catalog.coalesce((select auth.jwt() ->> 'email'), ''))
-    and au.is_active = true
-  )
-);
+-- Daily vybe deletion is not permitted for authenticated users.
+drop policy if exists "Allowed users delete own daily vybe" on public.daily_vybes;
 
 -- ============================================================================
 -- 8. SECURITY DEFINER Functions Hardening & Privilege Revocation

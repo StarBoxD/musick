@@ -9,14 +9,18 @@ grant usage on schema public to authenticated;
 -- Allowlist: read-only; the RLS policy limits each user to their own active row.
 grant select on table public.allowed_users to authenticated;
 
--- Profile: own row (RLS).
+-- Profile: own row (RLS). Deletion is handled via cascade from auth.users.
 grant select, insert, update on table public.profiles to authenticated;
 
--- Library + discovery tables used by components/music/use-library.ts and app/api/music/*.
+-- User library tables: full CRUD for own items.
 grant select, insert, update, delete on table
   public.favorites,
   public.playlists,
-  public.playlist_tracks,
+  public.playlist_tracks
+to authenticated;
+
+-- Discovery and listening history: append and read only (no DELETE granted).
+grant select, insert, update on table
   public.seen_tracks,
   public.daily_vybes
 to authenticated;

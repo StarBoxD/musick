@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { sanitizeRedirectTarget } from "@/lib/auth/redirect";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/dashboard";
+  const nextParam = searchParams.get("next");
 
   // OAuth providers may return an error instead of an authorization code.
   // Never display the raw provider description because it can contain details
@@ -64,6 +65,6 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/login?access=denied", origin));
   }
 
-  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
-  return NextResponse.redirect(new URL(safeNext, origin));
+  const safeTarget = sanitizeRedirectTarget(nextParam, origin);
+  return NextResponse.redirect(new URL(safeTarget, origin));
 }

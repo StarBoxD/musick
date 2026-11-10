@@ -20,10 +20,17 @@ import { postMusic, searchMusic } from "@/lib/music/audius";
 import { MOODS } from "@/lib/music/moods";
 import type { Mood, Song } from "@/types/music";
 
+export interface PlaybackSource {
+  type: "mood" | "search" | "playlist" | "smart" | "daily" | "direct";
+  mood?: Mood;
+  query?: string;
+  playlistId?: string;
+}
+
 type Props = {
   favorites: Song[];
   pendingFavorites?: Set<string>;
-  onPlay: (songs: Song[], index: number) => void;
+  onPlay: (songs: Song[], index: number, source?: PlaybackSource) => void;
   onFavorite: (song: Song) => void;
   onAdd: (song: Song) => void;
 };
@@ -64,7 +71,7 @@ export default function DiscoverPanel({
       const picked = (data.songs ?? [])[0] as Song | undefined;
       if (picked) {
         setCurrentSong(picked);
-        onPlay([picked], 0);
+        onPlay([picked], 0, { type: "mood", mood: nextMood });
         setMessage("");
       } else {
         setMessage("Bu kanalda uygun parça bulunamadı, farklı bir frekans dene.");
@@ -90,7 +97,7 @@ export default function DiscoverPanel({
       const picked = (data.songs ?? [])[0] as Song | undefined;
       if (picked) {
         setCurrentSong(picked);
-        onPlay(data.songs ?? [picked], 0);
+        onPlay(data.songs ?? [picked], 0, { type: "search", query });
         setMessage("");
       } else {
         setMessage("Aramaya uygun parça bulunamadı.");

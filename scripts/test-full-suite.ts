@@ -313,6 +313,15 @@ async function runAllTests() {
   });
 
   // -------------------------------------------------------------
+  // BÖLÜM 7: P1 Güvenlik, Player, Kuyruk ve PWA Regresyonları
+  // -------------------------------------------------------------
+  const { runP1Tests } = await import("./test-p1-regressions");
+  const p1Result = runP1Tests();
+  p1Result.reports.forEach((r) => {
+    check(r.category, r.name, r.passed, r.details);
+  });
+
+  // -------------------------------------------------------------
   // SONUÇLARI YAZDIR
   // -------------------------------------------------------------
   let allOk = true;

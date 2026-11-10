@@ -36,12 +36,15 @@ export default function MiniPlayer({
   const listenedRef = useRef(false);
   const consecutiveErrorsRef = useRef(0);
   const autoSkipTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const currentTrackIdRef = useRef<string | null>(null);
 
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.8);
+  const volumeRef = useRef(volume);
+  volumeRef.current = volume;
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSeeking, setIsSeeking] = useState(false);
@@ -64,6 +67,13 @@ export default function MiniPlayer({
     }
   }, []);
 
+  // Ses seviyesi değiştiğinde SADECE ses seviyesini güncelle (şarkıyı asla yeniden yükleme)
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+  }, [volume]);
+
   // Parça değiştiğinde audio elementini hazırla
   useEffect(() => {
     const audio = audioRef.current;
@@ -72,6 +82,26 @@ export default function MiniPlayer({
       autoSkipTimerRef.current = null;
     }
 
+    if (!song) {
+      currentTrackIdRef.current = null;
+      if (audio) {
+        audio.pause();
+        audio.src = "";
+      }
+      setPlaying(false);
+      setTime(0);
+      setDuration(0);
+      setIsReady(false);
+      setError(null);
+      return;
+    }
+
+    // Aynı şarkı prop olarak yeniden geldiyse playback'i sıfırlama
+    if (currentTrackIdRef.current === song.trackId && audio && audio.src) {
+      return;
+    }
+
+    currentTrackIdRef.current = song.trackId;
     listenedRef.current = false;
     setPlaying(false);
     setTime(0);
@@ -79,7 +109,7 @@ export default function MiniPlayer({
     setIsReady(false);
     setError(null);
 
-    if (!audio || !song) return;
+    if (!audio) return;
 
     // Akış URL'si güvenlik doğrulaması
     if (!song.streamUrl || !isValidStreamUrl(song.streamUrl)) {
@@ -89,7 +119,7 @@ export default function MiniPlayer({
 
     setLoading(true);
     audio.src = song.streamUrl;
-    audio.volume = volume;
+    audio.volume = volumeRef.current;
     audio.load();
 
     const playPromise = audio.play();
@@ -110,10 +140,10 @@ export default function MiniPlayer({
           }
         });
     }
-  }, [song, volume]);
+  }, [song]);
 
   // Önceki parça davranışı: 3 saniyeden fazla çalmışsa başa sar, değilse önceki şarkıya geç
-  const handlePrevClick = () => {
+  const handlePrevClick = useCallback(() => {
     const audio = audioRef.current;
     if (audio && audio.currentTime > 3) {
       audio.currentTime = 0;
@@ -126,10 +156,10 @@ export default function MiniPlayer({
       audio.currentTime = 0;
       setTime(0);
     }
-  };
+  }, [hasPrev, onPrev]);
 
   // Sonraki parça davranışı: Sonraki parça yoksa yenisini talep et
-  const handleNextClick = () => {
+  const handleNextClick = useCallback(() => {
     if (hasNext) {
       onNext();
     } else if (onNeedMoreSongs) {
@@ -137,10 +167,10 @@ export default function MiniPlayer({
     } else {
       setError("Kuyruktaki son parçadasınız.");
     }
-  };
+  }, [hasNext, onNext, onNeedMoreSongs]);
 
   // Play / Pause değiştirici
-  const togglePlay = async () => {
+  const togglePlay = useCallback(async () => {
     const audio = audioRef.current;
     if (!audio || error?.includes("doğrulanamadı")) return;
 
@@ -149,7 +179,7 @@ export default function MiniPlayer({
         setError(null);
         await audio.play();
         setPlaying(true);
-      } catch (err: unknown) {
+      } catch {
         setError("Akış başlatılamadı.");
         setPlaying(false);
       }
@@ -157,7 +187,116 @@ export default function MiniPlayer({
       audio.pause();
       setPlaying(false);
     }
-  };
+  }, [error]);
+
+  // iPhone / PWA Media Session API entegrasyonu
+  useEffect(() => {
+    if (typeof window === "undefined" || !("mediaSession" in navigator) || !song) return;
+
+    const mediaSession = navigator.mediaSession;
+
+    try {
+      const artworkList: MediaImage[] = song.artwork
+        ? [
+            { src: song.artwork, sizes: "512x512", type: "image/jpeg" },
+            { src: song.artwork, sizes: "256x256", type: "image/jpeg" },
+            { src: song.artwork, sizes: "128x128", type: "image/jpeg" },
+          ]
+        : [{ src: "/icon.svg", sizes: "512x512", type: "image/svg+xml" }];
+
+      mediaSession.metadata = new window.MediaMetadata({
+        title: song.title,
+        artist: song.artist,
+        album: "VYBE Radyo",
+        artwork: artworkList,
+      });
+
+      mediaSession.playbackState = playing ? "playing" : "paused";
+
+      // Action Handlers
+      mediaSession.setActionHandler("play", () => {
+        void togglePlay();
+      });
+      mediaSession.setActionHandler("pause", () => {
+        void togglePlay();
+      });
+      mediaSession.setActionHandler("previoustrack", () => {
+        handlePrevClick();
+      });
+      mediaSession.setActionHandler("nexttrack", () => {
+        handleNextClick();
+      });
+
+      // Seek actions (optional support by browser)
+      try {
+        mediaSession.setActionHandler("seekto", (details) => {
+          if (details.seekTime !== undefined && audioRef.current) {
+            audioRef.current.currentTime = details.seekTime;
+            setTime(details.seekTime);
+          }
+        });
+        mediaSession.setActionHandler("seekbackward", (details) => {
+          const skip = details.seekOffset || 10;
+          if (audioRef.current) {
+            const nextTime = Math.max(0, audioRef.current.currentTime - skip);
+            audioRef.current.currentTime = nextTime;
+            setTime(nextTime);
+          }
+        });
+        mediaSession.setActionHandler("seekforward", (details) => {
+          const skip = details.seekOffset || 10;
+          if (audioRef.current) {
+            const maxDuration = duration || Infinity;
+            const nextTime = Math.min(maxDuration, audioRef.current.currentTime + skip);
+            audioRef.current.currentTime = nextTime;
+            setTime(nextTime);
+          }
+        });
+      } catch {
+        // Tarayıcı bu ek seek eylemlerini desteklemiyorsa sessizce geç
+      }
+    } catch {
+      // MediaSession API çağrısı sırasında oluşabilecek tarayıcı istisnalarını yakala
+    }
+
+    return () => {
+      try {
+        mediaSession.setActionHandler("play", null);
+        mediaSession.setActionHandler("pause", null);
+        mediaSession.setActionHandler("previoustrack", null);
+        mediaSession.setActionHandler("nexttrack", null);
+        mediaSession.setActionHandler("seekto", null);
+        mediaSession.setActionHandler("seekbackward", null);
+        mediaSession.setActionHandler("seekforward", null);
+      } catch {
+        // Temizleme hatalarını yut
+      }
+    };
+  }, [song, playing, duration, handlePrevClick, handleNextClick, togglePlay]);
+
+  // Media Session Position State senkronizasyonu
+  useEffect(() => {
+    if (
+      typeof window === "undefined" ||
+      !("mediaSession" in navigator) ||
+      !("setPositionState" in navigator.mediaSession) ||
+      !duration ||
+      !Number.isFinite(duration) ||
+      duration <= 0
+    ) {
+      return;
+    }
+
+    try {
+      navigator.mediaSession.setPositionState({
+        duration: Math.max(0, duration),
+        playbackRate: 1,
+        position: Math.min(Math.max(0, time), duration),
+      });
+    } catch {
+      // Safari / Chrome setPositionState istisnası koruması
+    }
+  }, [time, duration]);
 
   if (!song) return null;
 
