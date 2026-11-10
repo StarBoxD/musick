@@ -1,26 +1,16 @@
 /**
- * VYBE - Real Headless Browser DOM & Responsive Testing Suite
- * 
- * Uses real Chrome/Edge headless browser via Chrome DevTools Protocol (CDP)
- * to measure actual rendered DOM layout and geometry across 10 viewports:
- * 320, 375, 390, 430, 768, 820, 1024, 1180, 1366, 1920
- * 
- * Measures on REAL BROWSER DOM:
- * 1. document.documentElement.scrollWidth vs clientWidth (No horizontal page scroll)
- * 2. Main content overflow (main.scrollWidth <= main.clientWidth)
- * 3. Bottom nav vs mini-player collision (miniPlayerRect.bottom <= bottomNavRect.top)
- * 4. Touch target dimensions of all visible buttons (>= 36-44px)
- * 5. Menu open/close interactions (click "Daha", sheet opens, click close, sheet hides)
- * 6. Input focus & font-size (iOS Safari >= 16px auto-zoom prevention)
- * 7. Tablet sidebar appearance (80px rail layout at 820px & 1024px)
- * 8. Playlist form width & overflow bounds
- * 9. Real PNG screenshot captures saved to disk for each viewport
+ * VYBE - Real Headless Browser DOM, React Component & Responsive Testing Suite
+ *
+ * Bundles the REAL React SongGrid & SongCard components via esbuild and executes
+ * them inside real Headless Chrome via Chrome DevTools Protocol (CDP) across 12 viewports:
+ * 320, 360, 375, 390, 430, 768, 820, 1024, 1180, 1280, 1440, 1920
  */
 
 import { spawn, ChildProcess } from "child_process";
 import fs from "fs";
 import path from "path";
 import os from "os";
+import * as esbuild from "esbuild";
 
 interface DomMeasurementResult {
   width: number;
@@ -43,12 +33,29 @@ interface DomMeasurementResult {
   profileLineNoOverlap: boolean;
   headingNoOverlap: boolean;
   headerAlignOk: boolean;
+  // SongCard & 3-Dot Menu specific real DOM checks
+  cardCount: number;
+  coverSizeOk: boolean;
+  coverWidth: number;
+  coverHeight: number;
+  titleFontSize: number;
+  artistFontSize: number;
+  typographyReadableOk: boolean;
+  cardsNoOverlap: boolean;
+  menuTrigger44pxOk: boolean;
+  menuInViewportOk: boolean;
+  singleMenuOnlyOk: boolean;
+  escapeClosesMenuOk: boolean;
+  favoriteActionOk: boolean;
+  enqueuePreservesCurrentSongOk: boolean;
+  playlistActionSeparateOk: boolean;
+  removeActionOk: boolean;
   debugButtons?: { id: string; w: number; h: number }[];
   screenshotSaved: boolean;
   screenshotPath: string;
 }
 
-const VIEWPORT_WIDTHS = [320, 375, 390, 430, 768, 820, 1024, 1180, 1280, 1366, 1440, 1920];
+const VIEWPORT_WIDTHS = [320, 360, 375, 390, 430, 768, 820, 1024, 1180, 1280, 1440, 1920];
 
 function getBrowserExecutable(): string | null {
   const candidates = [
@@ -60,6 +67,218 @@ function getBrowserExecutable(): string | null {
     if (fs.existsSync(c)) return c;
   }
   return null;
+}
+
+async function buildReactMountBundle(): Promise<string> {
+  const entryCode = `
+    import React, { useState } from "react";
+    import { createRoot } from "react-dom/client";
+    import SongGrid from "./components/music/song-grid";
+
+    const makeArtwork = (c1: string, c2: string, label: string) =>
+      \`data:image/svg+xml;utf8,\${encodeURIComponent(
+        \`<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+          <defs>
+            <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="\${c1}"/>
+              <stop offset="100%" stop-color="\${c2}"/>
+            </linearGradient>
+          </defs>
+          <rect width="240" height="240" fill="url(#g)"/>
+          <circle cx="120" cy="120" r="68" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2"/>
+          <circle cx="120" cy="120" r="24" fill="rgba(9,9,13,0.55)"/>
+          <text x="20" y="214" fill="rgba(255,255,255,0.85)" font-family="sans-serif" font-weight="800" font-size="22">\${label}</text>
+        </svg>\`
+      )}\`;
+
+    const SAMPLE_SONGS = [
+      {
+        trackId: "trk-1",
+        title: "Bir Derdim Var (Canlı Stüdyo Kaydı - 2026 Remastered Özel Versiyon)",
+        artist: "Mor ve Ötesi feat. Şebnem Ferah & Teoman",
+        album: "Dünya Yalan Söylüyor",
+        artwork: makeArtwork("#232742", "#141624", "MVÖ"),
+        streamUrl: "https://api.audius.co/v1/tracks/trk-1/stream?app_name=VYBE",
+        durationSeconds: 214,
+        genre: "Alternatif Rock",
+        sourceUrl: "",
+        license: "All Rights Reserved",
+        provider: "audius",
+      },
+      {
+        trackId: "trk-2",
+        title: "Antidepresan",
+        artist: "Mert Demir & Mabel Matiz",
+        album: "Antidepresan",
+        artwork: makeArtwork("#2d1f3d", "#141320", "MD"),
+        streamUrl: "https://api.audius.co/v1/tracks/trk-2/stream?app_name=VYBE",
+        durationSeconds: 198,
+        genre: "Türkçe Pop",
+        sourceUrl: "",
+        license: "All Rights Reserved",
+        provider: "audius",
+      },
+      {
+        trackId: "trk-3",
+        title: "Haberin Yok Ölüyorum",
+        artist: "Duman",
+        album: "Belki Alışman Lazım",
+        artwork: "",
+        streamUrl: "https://api.audius.co/v1/tracks/trk-3/stream?app_name=VYBE",
+        durationSeconds: 242,
+        genre: "Rock",
+        sourceUrl: "",
+        license: "All Rights Reserved",
+        provider: "audius",
+      },
+      {
+        trackId: "trk-4",
+        title: "Gülpembe (Anadolu Rock Klasikleri Koleksiyonu)",
+        artist: "Barış Manço & Kurtalan Ekspres",
+        album: "Sözüm Meclisten Dışarı",
+        artwork: makeArtwork("#1e332a", "#111816", "BM"),
+        streamUrl: "https://api.audius.co/v1/tracks/trk-4/stream?app_name=VYBE",
+        durationSeconds: 265,
+        genre: "Anadolu Rock",
+        sourceUrl: "",
+        license: "All Rights Reserved",
+        provider: "audius",
+      },
+      {
+        trackId: "trk-5",
+        title: "Fırtınadayım",
+        artist: "Mabel Matiz",
+        album: "Maya",
+        artwork: makeArtwork("#3b232e", "#161219", "MM"),
+        streamUrl: "https://api.audius.co/v1/tracks/trk-5/stream?app_name=VYBE",
+        durationSeconds: 208,
+        genre: "Indie Pop",
+        sourceUrl: "",
+        license: "All Rights Reserved",
+        provider: "audius",
+      },
+      {
+        trackId: "trk-6",
+        title: "Yalnızlık Senfonisi",
+        artist: "Sezen Aksu",
+        album: "Gülümse",
+        artwork: "",
+        streamUrl: "https://api.audius.co/v1/tracks/trk-6/stream?app_name=VYBE",
+        durationSeconds: 251,
+        genre: "Klasik Pop",
+        sourceUrl: "",
+        license: "All Rights Reserved",
+        provider: "audius",
+      },
+    ];
+
+    function TestHarnessApp() {
+      const [songs, setSongs] = useState(SAMPLE_SONGS);
+      const [favorites, setFavorites] = useState([SAMPLE_SONGS[1]]);
+      const [queue, setQueue] = useState([SAMPLE_SONGS[0]]);
+      const [index, setIndex] = useState(0);
+      const [playlistAdded, setPlaylistAdded] = useState([]);
+      const [removedIds, setRemovedIds] = useState([]);
+      const [lastToast, setLastToast] = useState("");
+
+      const handlePlay = (newSongs, nextIdx) => {
+        setQueue(newSongs);
+        setIndex(nextIdx);
+      };
+
+      const handleFavorite = (song) => {
+        setFavorites((prev) =>
+          prev.some((f) => f.trackId === song.trackId)
+            ? prev.filter((f) => f.trackId !== song.trackId)
+            : [song, ...prev]
+        );
+      };
+
+      const handleEnqueue = (track) => {
+        setQueue((prev) => {
+          if (prev.some((item) => item.trackId === track.trackId)) {
+            setLastToast(\`"\${track.title}" zaten oynatma sırasında.\`);
+            return prev;
+          }
+          setLastToast(\`"\${track.title}" sıraya eklendi.\`);
+          return [...prev, track];
+        });
+      };
+
+      const handleAddToPlaylist = (track) => {
+        setPlaylistAdded((prev) => [...prev, track.trackId]);
+        setLastToast(\`"\${track.title}" çalma listesine eklendi.\`);
+      };
+
+      const handleRemove = (track) => {
+        setRemovedIds((prev) => [...prev, track.trackId]);
+        setSongs((prev) => prev.filter((s) => s.trackId !== track.trackId));
+      };
+
+      // Expose state for automated CDP assertions
+      window.__VYBE_TEST_STATE__ = {
+        songs,
+        favorites,
+        queue,
+        index,
+        currentPlaying: queue[index] || null,
+        playlistAdded,
+        removedIds,
+        lastToast,
+        resetSongs: () => {
+          setSongs(SAMPLE_SONGS);
+          setLastToast("");
+        },
+      };
+
+      return (
+        <div>
+          <SongGrid
+            songs={songs}
+            favorites={favorites}
+            empty="Parça yok"
+            source={{ type: "gems", label: "Alternatif" }}
+            onPlay={handlePlay}
+            onFavorite={handleFavorite}
+            onAddToQueue={handleEnqueue}
+            onAdd={handleAddToPlaylist}
+            onRemove={handleRemove}
+          />
+          {lastToast && (
+            <div className="music-toast" id="test-toast" role="status">
+              <span>{lastToast}</span>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const rootEl = document.getElementById("react-song-grid-root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<TestHarnessApp />);
+    }
+  `;
+
+  const result = await esbuild.build({
+    stdin: {
+      contents: entryCode,
+      resolveDir: process.cwd(),
+      sourcefile: "harness-entry.tsx",
+      loader: "tsx",
+    },
+    bundle: true,
+    write: false,
+    format: "iife",
+    platform: "browser",
+    target: ["chrome110"],
+    jsx: "automatic",
+    define: {
+      "process.env.NODE_ENV": '"development"',
+    },
+  });
+
+  return result.outputFiles[0].text;
 }
 
 class CdpClient {
@@ -121,12 +340,17 @@ export async function runRealBrowserAudit(): Promise<{
     };
   }
 
-  const browserName = browserPath.includes("chrome") ? "Google Chrome (Headless)" : "Microsoft Edge (Headless)";
+  const reactBundleCode = await buildReactMountBundle();
+
+  const browserName = browserPath.includes("chrome")
+    ? "Google Chrome (Headless)"
+    : "Microsoft Edge (Headless)";
   const port = 9333;
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "vybe-browser-test-"));
   const harnessPath = path.resolve(process.cwd(), "scripts/harness.html");
   const fileUrl = `file:///${harnessPath.replace(/\\/g, "/")}`;
-  const screenshotDir = "C:\\Users\\efedo\\.gemini\\antigravity\\brain\\84a8fea8-9ffb-452f-981e-803b5e12bcb8\\screenshots";
+  const screenshotDir =
+    "C:\\Users\\efedo\\.gemini\\antigravity\\brain\\84a8fea8-9ffb-452f-981e-803b5e12bcb8\\screenshots";
 
   if (!fs.existsSync(screenshotDir)) {
     fs.mkdirSync(screenshotDir, { recursive: true });
@@ -145,7 +369,6 @@ export async function runRealBrowserAudit(): Promise<{
     fileUrl,
   ]);
 
-  // Wait for remote debugging endpoint and get page target websocket URL
   let wsUrl = "";
   for (let i = 0; i < 40; i++) {
     try {
@@ -165,7 +388,11 @@ export async function runRealBrowserAudit(): Promise<{
 
   if (!wsUrl) {
     chromeProc.kill("SIGKILL");
-    try { fs.rmSync(tempDir, { recursive: true, force: true }); } catch { /* pass */ }
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      /* pass */
+    }
     return {
       success: false,
       measurements: [],
@@ -183,15 +410,20 @@ export async function runRealBrowserAudit(): Promise<{
     await cdp.send("DOM.enable");
     await cdp.send("Runtime.enable");
 
-    // Navigate to ensure loaded
     await cdp.send("Page.navigate", { url: fileUrl });
-    await new Promise((r) => setTimeout(r, 800));
+    await new Promise((r) => setTimeout(r, 600));
+
+    // Mount the real React SongGrid & SongCard bundle into the page
+    await cdp.send("Runtime.evaluate", {
+      expression: reactBundleCode,
+      awaitPromise: false,
+    });
+    await new Promise((r) => setTimeout(r, 250));
 
     for (const width of VIEWPORT_WIDTHS) {
       const isMobile = width <= 768;
-      const height = isMobile ? 740 : 900;
+      const height = isMobile ? 780 : 920;
 
-      // 1. Set real viewport metrics in browser engine
       await cdp.send("Emulation.setDeviceMetricsOverride", {
         width,
         height,
@@ -199,11 +431,28 @@ export async function runRealBrowserAudit(): Promise<{
         mobile: isMobile,
       });
 
-      await new Promise((r) => setTimeout(r, 150));
+      await cdp.send("Runtime.evaluate", {
+        expression: `if (window.__VYBE_TEST_STATE__ && window.__VYBE_TEST_STATE__.resetSongs) { window.__VYBE_TEST_STATE__.resetSongs(); }`,
+      });
+      await new Promise((r) => setTimeout(r, 80));
 
-      // 2. Measure actual rendered DOM in the engine
+      // Take clean screenshot BEFORE interactive menu tests mutate list items
+      const screenshotData = await cdp.send("Page.captureScreenshot", {
+        format: "png",
+      });
+      const screenshotFilename = `viewport_${width}.png`;
+      const fullScreenshotPath = path.join(screenshotDir, screenshotFilename);
+      fs.writeFileSync(fullScreenshotPath, Buffer.from(screenshotData.data, "base64"));
+
+      // Run comprehensive DOM & React interaction tests
       const evalScript = `
-        (() => {
+        (async () => {
+          const sleep = (ms) => new Promise((r) => setTimeout(r, Math.min(ms, 15)));
+          if (window.__VYBE_TEST_STATE__ && window.__VYBE_TEST_STATE__.resetSongs) {
+            window.__VYBE_TEST_STATE__.resetSongs();
+            await sleep(40);
+          }
+
           const scrollWidth = document.documentElement.scrollWidth;
           const clientWidth = document.documentElement.clientWidth;
           const noPageHorizontalOverflow = scrollWidth <= clientWidth;
@@ -217,11 +466,203 @@ export async function runRealBrowserAudit(): Promise<{
           const pRect = playerEl ? playerEl.getBoundingClientRect() : { bottom: 0 };
           const nRect = navEl ? navEl.getBoundingClientRect() : { top: 9999 };
           const isMobileVp = window.innerWidth <= 768;
-          // In mobile, player sits above nav; player.bottom must be <= nav.top
           const noNavPlayerCollision = isMobileVp ? (pRect.bottom <= nRect.top + 4) : true;
 
+          // SongCard DOM Checks
+          const cards = Array.from(document.querySelectorAll(".song-card"));
+          const cardCount = cards.length;
+
+          // Cover dimensions
+          const firstCover = document.querySelector(".song-cover");
+          const coverRect = firstCover ? firstCover.getBoundingClientRect() : { width: 0, height: 0 };
+          const coverWidth = Math.round(coverRect.width);
+          const coverHeight = Math.round(coverRect.height);
+          let coverSizeOk = false;
+          if (window.innerWidth <= 768) {
+            coverSizeOk = coverWidth >= 58 && coverWidth <= 70 && Math.abs(coverWidth - coverHeight) <= 1;
+          } else if (window.innerWidth <= 1120) {
+            coverSizeOk = coverWidth >= 68 && coverWidth <= 84 && Math.abs(coverWidth - coverHeight) <= 1;
+          } else {
+            coverSizeOk = coverWidth >= 88 && coverWidth <= 104 && Math.abs(coverWidth - coverHeight) <= 1;
+          }
+
+          // Typography readability
+          const firstTitle = document.querySelector(".song-title");
+          const firstArtist = document.querySelector(".song-artist");
+          const titleFontSize = firstTitle ? parseFloat(window.getComputedStyle(firstTitle).fontSize) : 0;
+          const artistFontSize = firstArtist ? parseFloat(window.getComputedStyle(firstArtist).fontSize) : 0;
+          let typographyReadableOk = false;
+          if (window.innerWidth <= 768) {
+            typographyReadableOk = titleFontSize >= 14.8 && titleFontSize <= 16.5 && artistFontSize >= 12.8 && artistFontSize <= 14.5;
+          } else if (window.innerWidth <= 1120) {
+            typographyReadableOk = titleFontSize >= 14 && titleFontSize <= 15.5 && artistFontSize >= 12 && artistFontSize <= 13.5;
+          } else {
+            typographyReadableOk = titleFontSize >= 15 && titleFontSize <= 16.5 && artistFontSize >= 13 && artistFontSize <= 14.5;
+          }
+
+          // Check that cards do not overlap each other
+          let cardsNoOverlap = cards.length >= 4;
+          for (let i = 0; i < cards.length; i++) {
+            for (let j = i + 1; j < cards.length; j++) {
+              const r1 = cards[i].getBoundingClientRect();
+              const r2 = cards[j].getBoundingClientRect();
+              const horizOverlap = r1.left < r2.right - 1 && r2.left < r1.right - 1;
+              const vertOverlap = r1.top < r2.bottom - 1 && r2.top < r1.bottom - 1;
+              if (horizOverlap && vertOverlap) {
+                cardsNoOverlap = false;
+              }
+            }
+          }
+
+          // Check that when scrolled to bottom, the last card does not remain trapped behind MiniPlayer
+          if (main && cards.length > 0 && playerEl) {
+            const prevScroll = main.scrollTop;
+            main.scrollTop = main.scrollHeight;
+            const lastCardRect = cards[cards.length - 1].getBoundingClientRect();
+            const plRectNow = playerEl.getBoundingClientRect();
+            if (lastCardRect.bottom > plRectNow.top + 2) {
+              cardsNoOverlap = false;
+            }
+            main.scrollTop = prevScroll;
+          }
+
+          // Check 3-dot menu trigger size >= 44x44px
+          const menuTriggers = Array.from(document.querySelectorAll(".song-menu-trigger"));
+          const menuTrigger44pxOk = menuTriggers.length > 0 && menuTriggers.every((btn) => {
+            const r = btn.getBoundingClientRect();
+            return Math.round(r.width) >= 44 && Math.round(r.height) >= 44;
+          });
+
+          // Test 3-dot Menu Open & Viewport Bounds
+          let menuInViewportOk = false;
+          let singleMenuOnlyOk = false;
+          let escapeClosesMenuOk = false;
+          let favoriteActionOk = false;
+          let enqueuePreservesCurrentSongOk = false;
+          let playlistActionSeparateOk = false;
+          let removeActionOk = false;
+
+          if (menuTriggers.length >= 3) {
+            // 1. Open first card's menu
+            menuTriggers[0].click();
+            await sleep(40);
+            const openMenus1 = document.querySelectorAll(".song-dropdown-menu");
+            if (openMenus1.length === 1) {
+              const mRect = openMenus1[0].getBoundingClientRect();
+              menuInViewportOk =
+                mRect.left >= 0 &&
+                mRect.right <= window.innerWidth &&
+                mRect.top >= 0 &&
+                mRect.bottom <= window.innerHeight;
+            }
+
+            // 2. Click second card's menu trigger -> first must close automatically
+            menuTriggers[1].click();
+            await sleep(40);
+            const openMenus2 = document.querySelectorAll(".song-dropdown-menu");
+            singleMenuOnlyOk =
+              openMenus2.length === 1 &&
+              menuTriggers[0].getAttribute("aria-expanded") === "false" &&
+              menuTriggers[1].getAttribute("aria-expanded") === "true";
+
+            // 3. Press Escape -> menu must close
+            document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+            await sleep(40);
+            escapeClosesMenuOk = document.querySelectorAll(".song-dropdown-menu").length === 0;
+
+            // 4. Favorite toggle via menu
+            const initialFavCount = window.__VYBE_TEST_STATE__.favorites.length;
+            menuTriggers[0].click();
+            await sleep(40);
+            const menuItems0 = Array.from(document.querySelectorAll(".song-dropdown-menu .song-menu-item"));
+            const favBtn = menuItems0.find((el) => el.textContent.includes("Favori"));
+            if (favBtn) {
+              favBtn.click();
+              await sleep(40);
+              const afterFavCount = window.__VYBE_TEST_STATE__.favorites.length;
+              favoriteActionOk = afterFavCount === initialFavCount + 1;
+              // Toggle back to keep clean state
+              menuTriggers[0].click();
+              await sleep(40);
+              const favBtnBack = Array.from(document.querySelectorAll(".song-dropdown-menu .song-menu-item")).find((el) =>
+                el.textContent.includes("Favorilerden çıkar")
+              );
+              if (favBtnBack) {
+                favBtnBack.click();
+                await sleep(40);
+              } else {
+                favoriteActionOk = false;
+              }
+            }
+
+            // 5. Enqueue via menu ("Sıraya ekle") without interrupting current playing track
+            const beforePlayingId = window.__VYBE_TEST_STATE__.currentPlaying?.trackId;
+            const beforeIndex = window.__VYBE_TEST_STATE__.index;
+            const beforeQueueLen = window.__VYBE_TEST_STATE__.queue.length;
+            menuTriggers[2].click();
+            await sleep(40);
+            const queueBtn = Array.from(document.querySelectorAll(".song-dropdown-menu .song-menu-item")).find((el) =>
+              el.textContent.includes("Sıraya ekle")
+            );
+            if (queueBtn) {
+              queueBtn.click();
+              await sleep(40);
+              const afterPlayingId = window.__VYBE_TEST_STATE__.currentPlaying?.trackId;
+              const afterIndex = window.__VYBE_TEST_STATE__.index;
+              const afterQueueLen = window.__VYBE_TEST_STATE__.queue.length;
+
+              // Try adding the exact same track again -> duplicate must be prevented
+              menuTriggers[2].click();
+              await sleep(40);
+              const queueBtnAgain = Array.from(document.querySelectorAll(".song-dropdown-menu .song-menu-item")).find((el) =>
+                el.textContent.includes("Sıraya ekle")
+              );
+              if (queueBtnAgain) {
+                queueBtnAgain.click();
+                await sleep(40);
+              }
+              const afterDuplicateQueueLen = window.__VYBE_TEST_STATE__.queue.length;
+
+              enqueuePreservesCurrentSongOk =
+                beforePlayingId === afterPlayingId &&
+                beforeIndex === afterIndex &&
+                afterQueueLen >= beforeQueueLen &&
+                afterDuplicateQueueLen === afterQueueLen;
+            }
+
+            // 6. Add to Playlist via menu ("Çalma listesine ekle")
+            const beforePlaylistLen = window.__VYBE_TEST_STATE__.playlistAdded.length;
+            menuTriggers[1].click();
+            await sleep(40);
+            const plBtn = Array.from(document.querySelectorAll(".song-dropdown-menu .song-menu-item")).find((el) =>
+              el.textContent.includes("Çalma listesine ekle")
+            );
+            if (plBtn) {
+              plBtn.click();
+              await sleep(40);
+              playlistActionSeparateOk =
+                window.__VYBE_TEST_STATE__.playlistAdded.length === beforePlaylistLen + 1;
+            }
+
+            // 7. Remove from list ("Listeden çıkar")
+            const beforeSongCount = window.__VYBE_TEST_STATE__.songs.length;
+            const lastTrigger = menuTriggers[menuTriggers.length - 1];
+            lastTrigger.click();
+            await sleep(40);
+            const removeBtn = Array.from(document.querySelectorAll(".song-dropdown-menu .song-menu-item")).find((el) =>
+              el.textContent.includes("Listeden çıkar")
+            );
+            if (removeBtn) {
+              removeBtn.click();
+              await sleep(40);
+              removeActionOk = window.__VYBE_TEST_STATE__.songs.length === beforeSongCount - 1;
+              window.__VYBE_TEST_STATE__.resetSongs();
+              await sleep(40);
+            }
+          }
+
           // Touch Targets on all visible buttons
-          const buttons = Array.from(document.querySelectorAll("button:not([disabled])")).filter(b => {
+          const buttons = Array.from(document.querySelectorAll("button:not([disabled])")).filter((b) => {
             const r = b.getBoundingClientRect();
             const cs = window.getComputedStyle(b);
             return r.width > 0 && r.height > 0 && cs.display !== "none" && cs.visibility !== "hidden";
@@ -232,22 +673,27 @@ export async function runRealBrowserAudit(): Promise<{
           for (const b of buttons) {
             const r = b.getBoundingClientRect();
             if (r.width < smallest.width || r.height < smallest.height) {
-              smallest = { width: Math.round(r.width), height: Math.round(r.height), tag: b.tagName, id: b.id || b.className };
+              smallest = {
+                width: Math.round(r.width),
+                height: Math.round(r.height),
+                tag: b.tagName,
+                id: b.id || b.className,
+              };
             }
-            // Allow compact buttons minimum 34px, all standard touch buttons >= 38-44px
             if (r.width < 34 || r.height < 34) {
               touchTargetsValid = false;
             }
           }
 
-          // Return all buttons info for diagnostic
-          const debugButtons = buttons.map(b => ({
-            id: b.id || b.className,
-            w: Math.round(b.getBoundingClientRect().width),
-            h: Math.round(b.getBoundingClientRect().height)
-          })).filter(b => b.w < 36 || b.h < 36);
+          const debugButtons = buttons
+            .map((b) => ({
+              id: b.id || b.className,
+              w: Math.round(b.getBoundingClientRect().width),
+              h: Math.round(b.getBoundingClientRect().height),
+            }))
+            .filter((b) => b.w < 36 || b.h < 36);
 
-          // Menu Open / Close
+          // Mobile bottom sheet Open / Close
           const tabMore = document.getElementById("tab-more");
           const backdrop = document.getElementById("more-backdrop");
           const btnClose = document.getElementById("btn-close-sheet");
@@ -284,7 +730,7 @@ export async function runRealBrowserAudit(): Promise<{
           const mainRect = main ? main.getBoundingClientRect() : { right: 9999 };
           const playlistFormNoOverflow = formRect.right <= mainRect.right + 2;
 
-          // Topbar Line vs Profile Overlap (Yatay çizgi profil üzerine biniyor mu?)
+          // Topbar Line vs Profile Overlap
           const topbar = document.querySelector(".music-topbar");
           const mobileUser = document.querySelector(".mobile-user");
           let profileLineNoOverlap = true;
@@ -294,7 +740,7 @@ export async function runRealBrowserAudit(): Promise<{
             profileLineNoOverlap = uRect.bottom <= tbRect.bottom + 2;
           }
 
-          // Topbar vs Heading Collision (İçerik başlangıcı çakışması)
+          // Topbar vs Heading Collision
           const heading = document.querySelector(".music-heading");
           let headingNoOverlap = true;
           if (topbar && heading) {
@@ -303,14 +749,14 @@ export async function runRealBrowserAudit(): Promise<{
             headingNoOverlap = hRect.top >= tbRect.bottom - 4;
           }
 
-          // Topbar Elementleri Dikey Eksen Hizalaması
+          // Topbar Vertical Alignment
           const topbarLeft = document.querySelector(".topbar-left");
           const topbarRight = document.querySelector(".topbar-right");
           let headerAlignOk = true;
           if (topbarLeft && topbarRight) {
             const lRect = topbarLeft.getBoundingClientRect();
             const rRect = topbarRight.getBoundingClientRect();
-            headerAlignOk = Math.abs((lRect.top + lRect.height / 2) - (rRect.top + rRect.height / 2)) < 8;
+            headerAlignOk = Math.abs(lRect.top + lRect.height / 2 - (rRect.top + rRect.height / 2)) < 8;
           }
 
           return {
@@ -334,7 +780,23 @@ export async function runRealBrowserAudit(): Promise<{
             profileLineNoOverlap,
             headingNoOverlap,
             headerAlignOk,
-            debugButtons
+            cardCount,
+            coverSizeOk,
+            coverWidth,
+            coverHeight,
+            titleFontSize,
+            artistFontSize,
+            typographyReadableOk,
+            cardsNoOverlap,
+            menuTrigger44pxOk,
+            menuInViewportOk,
+            singleMenuOnlyOk,
+            escapeClosesMenuOk,
+            favoriteActionOk,
+            enqueuePreservesCurrentSongOk,
+            playlistActionSeparateOk,
+            removeActionOk,
+            debugButtons,
           };
         })()
       `;
@@ -342,18 +804,10 @@ export async function runRealBrowserAudit(): Promise<{
       const evalResponse = await cdp.send("Runtime.evaluate", {
         expression: evalScript,
         returnByValue: true,
+        awaitPromise: true,
       });
 
       const res = evalResponse.result.value;
-
-      // 3. Take real PNG screenshot of the viewport
-      const screenshotData = await cdp.send("Page.captureScreenshot", {
-        format: "png",
-      });
-
-      const screenshotFilename = `viewport_${width}.png`;
-      const fullScreenshotPath = path.join(screenshotDir, screenshotFilename);
-      fs.writeFileSync(fullScreenshotPath, Buffer.from(screenshotData.data, "base64"));
 
       measurements.push({
         ...res,
@@ -375,7 +829,18 @@ export async function runRealBrowserAudit(): Promise<{
           m.playlistFormNoOverflow &&
           m.profileLineNoOverlap &&
           m.headingNoOverlap &&
-          m.headerAlignOk
+          m.headerAlignOk &&
+          m.coverSizeOk &&
+          m.typographyReadableOk &&
+          m.cardsNoOverlap &&
+          m.menuTrigger44pxOk &&
+          m.menuInViewportOk &&
+          m.singleMenuOnlyOk &&
+          m.escapeClosesMenuOk &&
+          m.favoriteActionOk &&
+          m.enqueuePreservesCurrentSongOk &&
+          m.playlistActionSeparateOk &&
+          m.removeActionOk
       ),
       measurements,
       browserName,
@@ -391,11 +856,13 @@ export async function runRealBrowserAudit(): Promise<{
   }
 }
 
-// CLI Execution
-if (require.main === module || (typeof process !== "undefined" && process.argv[1]?.includes("test-real-browser"))) {
+if (
+  require.main === module ||
+  (typeof process !== "undefined" && process.argv[1]?.includes("test-real-browser"))
+) {
   runRealBrowserAudit().then((res) => {
     console.log("\n=======================================================");
-    console.log(`   VYBE GERÇEK TARAYICI (REAL BROWSER) DOM DENETİMİ`);
+    console.log(`   VYBE GERÇEK TARAYICI & REACT BİLEŞEN TESTİ (12 EKRAN)`);
     console.log(`   Tarayıcı: ${res.browserName}`);
     console.log("=======================================================\n");
 
@@ -405,36 +872,48 @@ if (require.main === module || (typeof process !== "undefined" && process.argv[1
     }
 
     res.measurements.forEach((m) => {
-      const status =
+      const allPass =
         m.noPageHorizontalOverflow &&
         m.mainNoOverflow &&
         m.noNavPlayerCollision &&
         m.touchTargetsValid &&
         m.inputZoomSafe &&
-        m.tabletSidebarOk
-          ? "✓ GEÇTİ"
-          : "✗ KALDI";
+        m.tabletSidebarOk &&
+        m.coverSizeOk &&
+        m.typographyReadableOk &&
+        m.cardsNoOverlap &&
+        m.menuTrigger44pxOk &&
+        m.menuInViewportOk &&
+        m.singleMenuOnlyOk &&
+        m.escapeClosesMenuOk &&
+        m.favoriteActionOk &&
+        m.enqueuePreservesCurrentSongOk &&
+        m.playlistActionSeparateOk &&
+        m.removeActionOk;
+
+      const status = allPass ? "✓ GEÇTİ" : "✗ KALDI";
 
       console.log(`[${status}] Genişlik: ${m.width}px x ${m.height}px`);
-      console.log(`   - document.scrollWidth: ${m.scrollWidth}px | clientWidth: ${m.clientWidth}px (Taşma Yok: ${m.noPageHorizontalOverflow})`);
-      console.log(`   - Ana İçerik Taşması: ${m.mainNoOverflow ? "Yok" : "Taşma Var"}`);
-      console.log(`   - Mini Player / Alt Menü Çakışması: ${m.noNavPlayerCollision ? "Çakışma Yok" : "Çakışma Var"} (Player Alt: ${m.miniPlayerBottom}px, Nav Üst: ${m.navTop}px)`);
-      console.log(`   - Dokunma Hedefleri (Touch Targets): ${m.touchTargetsValid ? "Uygun (>=36px)" : "Küçük"} (En küçük: ${m.smallestButton.width}x${m.smallestButton.height}px - ${m.smallestButton.id})`);
-      if (m.debugButtons && m.debugButtons.length > 0) {
-        console.log(`     Küçük butonlar:`, m.debugButtons);
-      }
-      console.log(`   - Input Odaklanma Font Boyutu: ${m.inputFontSize}px (16px Kuralı / Zoom Engeli: ${m.inputZoomSafe})`);
-      console.log(`   - Kenar Çubuğu (Sidebar): ${m.sidebarWidth}px genişlik (Tablet 80px Rail Uyumu: ${m.tabletSidebarOk})`);
-      console.log(`   - Çalma Listesi Form Taşması: ${m.playlistFormNoOverflow ? "Yok" : "Taşma Var"}`);
-      console.log(`   - Profil / Çizgi Çakışması: ${m.profileLineNoOverlap ? "Çakışma Yok (Çizgi profilin altında)" : "Çakışma Var"}`);
-      console.log(`   - Başlık / İçerik Çakışması: ${m.headingNoOverlap ? "Çakışma Yok (Başlık çubuğun altında)" : "Çakışma Var"}`);
-      console.log(`   - Üst Menü / Logo / Profil Dikey Hizası: ${m.headerAlignOk ? "Mükemmel Hizalı" : "Hizalama Sapması"}`);
-      console.log(`   - Ekran Görüntüsü Kaydedildi: ${m.screenshotSaved} -> ${m.screenshotPath}\n`);
+      console.log(`   - Yatay Taşma: ${m.noPageHorizontalOverflow ? "Yok" : "Var"} (${m.scrollWidth}px / ${m.clientWidth}px)`);
+      console.log(`   - Albüm Kapağı: ${m.coverWidth}x${m.coverHeight}px (Hedef Aralığa Uygun: ${m.coverSizeOk})`);
+      console.log(`   - Yazı Okunabilirliği: Şarkı=${m.titleFontSize}px, Sanatçı=${m.artistFontSize}px (Uygun: ${m.typographyReadableOk})`);
+      console.log(`   - Kart Çakışması: ${m.cardsNoOverlap ? "Yok" : "Çakışma Var"}`);
+      console.log(`   - Üç Nokta Butonu (44x44px): ${m.menuTrigger44pxOk ? "Uygun" : "Küçük"}`);
+      console.log(`   - Üç Nokta Menüsü Ekran İçi Sınırları: ${m.menuInViewportOk ? "Taşma Yok" : "Taşma Var"}`);
+      console.log(`   - Tek Açık Menü Kuralı & Escape Kapatma: ${m.singleMenuOnlyOk && m.escapeClosesMenuOk ? "Çalışıyor" : "Hatalı"}`);
+      console.log(`   - Favori Ekle/Çıkar & Sıraya Ekle (Çalanı Korur) & Liste Ekle/Çıkar: ${m.favoriteActionOk && m.enqueuePreservesCurrentSongOk && m.playlistActionSeparateOk && m.removeActionOk ? "Çalışıyor" : "Hatalı"}`);
+      console.log(`   - Ekran Görüntüsü: ${m.screenshotPath}\n`);
     });
 
     console.log("-------------------------------------------------------");
     console.log(`Toplam Test Edilen Genişlik: ${res.measurements.length}`);
-    console.log(`GENEL DURUM: ${res.success ? "TÜM GERÇEK DOM TARAYICI TESTLERİ BAŞARIYLA GEÇTİ ✓" : "BAŞARISIZ KONTROLLER VAR ✗"}`);
+    console.log(
+      `GENEL DURUM: ${
+        res.success
+          ? "TÜM 12 VIEWPORT & REACT KART TESTLERİ BAŞARIYLA GEÇTİ ✓"
+          : "BAŞARISIZ KONTROLLER VAR ✗"
+      }`
+    );
     console.log("=======================================================\n");
 
     if (!res.success) process.exit(1);

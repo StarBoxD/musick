@@ -12,6 +12,7 @@ type Props = {
   pendingFavorites?: Set<string>;
   onPlay: (songs: Song[], index: number, source?: PlaybackSource) => void;
   onFavorite: (song: Song) => void;
+  onAddToQueue?: (song: Song) => void;
   onAdd: (song: Song) => void;
   onSaveSmart: (name: string, songs: Song[]) => void;
 };
@@ -22,6 +23,7 @@ export default function PersonalPanel({
   pendingFavorites,
   onPlay,
   onFavorite,
+  onAddToQueue,
   onAdd,
   onSaveSmart,
 }: Props) {
@@ -61,6 +63,7 @@ export default function PersonalPanel({
               source={{ type: "smart", label: list.name }}
               onPlay={onPlay}
               onFavorite={onFavorite}
+              onAddToQueue={onAddToQueue}
               onAdd={onAdd}
             />
           </section>
@@ -87,6 +90,7 @@ export default function PersonalPanel({
         source={defaultSource}
         onPlay={onPlay}
         onFavorite={onFavorite}
+        onAddToQueue={onAddToQueue}
         onAdd={onAdd}
       />
     </div>

@@ -19,6 +19,7 @@ import {
 import { postMusic, searchMusic } from "@/lib/music/audius";
 import { MOODS } from "@/lib/music/moods";
 import type { Mood, PlaybackSource, Song } from "@/types/music";
+import SongGrid from "@/components/music/song-grid";
 
 export type { PlaybackSource, PlaybackSourceType } from "@/types/music";
 
@@ -27,6 +28,7 @@ type Props = {
   pendingFavorites?: Set<string>;
   onPlay: (songs: Song[], index: number, source?: PlaybackSource) => void;
   onFavorite: (song: Song) => void;
+  onAddToQueue?: (song: Song) => void;
   onAdd: (song: Song) => void;
 };
 
@@ -49,16 +51,19 @@ export default function DiscoverPanel({
   pendingFavorites,
   onPlay,
   onFavorite,
+  onAddToQueue,
   onAdd,
 }: Props) {
   const [mood, setMood] = useState<Mood | null>(null);
   const [query, setQuery] = useState("");
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
+  const [searchResults, setSearchResults] = useState<Song[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
   const discover = async (nextMood: Mood) => {
     setMood(nextMood);
+    setSearchResults([]);
     setLoading(true);
     setMessage(`${MOOD_META[nextMood].desc} kanalından parça seçiliyor...`);
     try {
@@ -92,9 +97,11 @@ export default function DiscoverPanel({
       const picked = (data.songs ?? [])[0] as Song | undefined;
       if (picked) {
         setCurrentSong(picked);
+        setSearchResults((data.songs ?? [picked]) as Song[]);
         onPlay(data.songs ?? [picked], 0, { type: "search", query });
         setMessage("");
       } else {
+        setSearchResults([]);
         setMessage("Aramaya uygun parça bulunamadı.");
       }
     } catch (error) {
@@ -261,6 +268,28 @@ export default function DiscoverPanel({
             Yukarıdaki 8 kanaldan birini seç veya <b>Rastgele Frekans</b> butonuna dokun; yayın anında başlasın.
           </p>
         </div>
+      )}
+
+      {searchResults.length > 0 && (
+        <section className="discover-search-results">
+          <div className="section-caption">
+            <span>ARAMA SONUÇLARI ({searchResults.length})</span>
+          </div>
+          <SongGrid
+            songs={searchResults}
+            favorites={favorites}
+            pendingFavorites={pendingFavorites}
+            empty="Aramaya uygun parça bulunamadı."
+            source={{ type: "search", query }}
+            onPlay={(songs, idx, src) => {
+              if (songs[idx]) setCurrentSong(songs[idx]);
+              onPlay(songs, idx, src ?? { type: "search", query });
+            }}
+            onFavorite={onFavorite}
+            onAddToQueue={onAddToQueue}
+            onAdd={onAdd}
+          />
+        </section>
       )}
     </div>
   );

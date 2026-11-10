@@ -11,6 +11,7 @@ type Props = {
   source?: PlaybackSource;
   onPlay: (songs: Song[], index: number, source?: PlaybackSource) => void;
   onFavorite: (song: Song) => void;
+  onAddToQueue?: (song: Song) => void;
   onAdd: (song: Song) => void;
   onRemove?: (song: Song) => void;
 };
@@ -23,6 +24,7 @@ export default function SongGrid({
   source,
   onPlay,
   onFavorite,
+  onAddToQueue,
   onAdd,
   onRemove,
 }: Props) {
@@ -37,6 +39,7 @@ export default function SongGrid({
           isPendingFavorite={pendingFavorites?.has(song.trackId)}
           onPlay={() => onPlay(songs, index, source)}
           onFavorite={onFavorite}
+          onAddToQueue={onAddToQueue}
           onAddToPlaylist={onAdd}
           onRemove={onRemove}
         />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   AudioLines,
@@ -94,7 +94,23 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
   const [playlistName, setPlaylistName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
+  const [toastNote, setToastNote] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const song = queue[index] ?? null;
+
+  const showToast = (text: string) => {
+    setToastNote(text);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => {
+      setToastNote(null);
+    }, 2800);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
   const play = (songs: Song[], nextIndex: number, source?: PlaybackSource) => {
     // Kaynak değiştiğinde önceki kuyruk isteklerini geçersiz kıl
@@ -103,6 +119,36 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
     setIndex(nextIndex);
     // Yeni oynatma başladığında önceki playbackSource bilgisi asla yanlışlıkla korunmaz
     setPlaybackSource(source ?? { type: "direct" });
+  };
+
+  const enqueue = (track: Song) => {
+    if (!track?.trackId) return;
+
+    // Aynı şarkının yanlışlıkla tekrar tekrar eklenmesini engelle
+    if (queue.some((item) => item.trackId === track.trackId)) {
+      const duplicateMsg = `"${track.title}" zaten oynatma sırasında.`;
+      library.setMessage(duplicateMsg);
+      showToast(duplicateMsg);
+      return;
+    }
+
+    const wasEmpty = queue.length === 0;
+    setQueue((prevQueue) => {
+      if (prevQueue.some((item) => item.trackId === track.trackId)) return prevQueue;
+      return [...prevQueue, track];
+    });
+
+    // Kuyruk tamamen boşsa ilk sıraya yerleştir, doluysa mevcut şarkıyı ve index'i asla değiştirme
+    if (wasEmpty) {
+      setIndex(0);
+      if (!playbackSource) {
+        setPlaybackSource({ type: "direct" });
+      }
+    }
+
+    const addedMsg = `"${track.title}" sıraya eklendi.`;
+    library.setMessage(addedMsg);
+    showToast(addedMsg);
   };
 
   const fetchMoreSongs = async () => {
@@ -236,7 +282,9 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
   const add = (track: Song) => {
     const playlistId = library.activePlaylist || library.playlists[0]?.id || "";
     if (!playlistId) {
-      library.setMessage("Önce yeni bir çalma listesi oluştur.");
+      const msg = "Önce yeni bir çalma listesi oluştur.";
+      library.setMessage(msg);
+      showToast(msg);
       setTab("playlists");
       return;
     }
@@ -244,6 +292,7 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
       library.setActivePlaylist(playlistId);
     }
     void library.addToPlaylist(playlistId, track);
+    showToast(`"${track.title}" çalma listesine eklendi.`);
   };
 
   return (
@@ -349,6 +398,7 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
             pendingFavorites={library.pendingFavorites}
             onPlay={play}
             onFavorite={library.toggleFavorite}
+            onAddToQueue={enqueue}
             onAdd={add}
           />
         )}
@@ -361,6 +411,7 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
             pendingFavorites={library.pendingFavorites}
             onPlay={play}
             onFavorite={library.toggleFavorite}
+            onAddToQueue={enqueue}
             onAdd={add}
             onSaveSmart={library.saveSmart}
           />
@@ -376,6 +427,7 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
               source={{ type: "favorites", label: "Favoriler" }}
               onPlay={play}
               onFavorite={library.toggleFavorite}
+              onAddToQueue={enqueue}
               onAdd={add}
             />
           </div>
@@ -538,7 +590,7 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
                   songs={library.playlistSongs}
                   favorites={library.favorites}
                   pendingFavorites={library.pendingFavorites}
-                  empty="Bu listede henüz parça yok. Radyoda veya aramada beğendiğin şarkılarda 'Listeye Ekle' butonuna bas."
+                  empty="Bu listede henüz parça yok. Radyoda veya aramada beğendiğin şarkılarda üç nokta menüsünden 'Çalma listesine ekle' seçeneğine dokun."
                   source={{
                     type: "playlist",
                     playlistId: activePlaylistObj.id,
@@ -556,6 +608,7 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
                     )
                   }
                   onFavorite={library.toggleFavorite}
+                  onAddToQueue={enqueue}
                   onAdd={add}
                   onRemove={library.removeFromPlaylist}
                 />
@@ -564,6 +617,13 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
           </div>
         )}
       </section>
+
+      {toastNote && (
+        <div className="music-toast" role="status" aria-live="polite">
+          <Check size={14} />
+          <span>{toastNote}</span>
+        </div>
+      )}
 
       {/* Telefon ve Küçük Tablet İçin Alt Navigasyon Barı */}
       <nav className="mobile-bottom-nav" aria-label="Mobil alt menü">
