@@ -210,6 +210,19 @@ export function buildVerifiedStreamUrl(trackId: string | number): string {
 }
 
 /**
+ * Strict Audius domain verification.
+ * Only genuine audius.co and genuine subdomains (*.audius.co), or verified
+ * decentralized Audius creator node domains are allowed.
+ *
+ * Strict boundary rules:
+ * - Rejects non-HTTPS schemes.
+ * - Rejects lookalike / suffix domains like fakeaudius.co, audius.co.attacker.com,
+ *   audius-phishing.org, myaudius.net.
+ */
+const AUDIUS_OFFICIAL_DOMAIN_REGEX = /^(?:[a-zA-Z0-9-]+\.)*audius\.co$/i;
+const AUDIUS_DECENTRALIZED_NODE_REGEX = /^audius-creator-[0-9]+\.theblueprint\.xyz$/i;
+
+/**
  * Validates whether a streaming URL meets strict HTTPS Audius stream standards.
  */
 export function isValidStreamUrl(url: string): boolean {
@@ -217,9 +230,26 @@ export function isValidStreamUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
     if (parsed.protocol !== "https:") return false;
-    const isAudiusApi = parsed.hostname.endsWith("audius.co") && parsed.pathname.includes("/stream");
-    const isAudiusCdn = parsed.hostname.includes("audius") && (parsed.pathname.includes("/stream") || parsed.pathname.includes("/tracks/cidstream"));
-    return isAudiusApi || isAudiusCdn;
+
+    const hostname = parsed.hostname.toLowerCase();
+
+    // Strict hostname verification
+    const isOfficialAudius = AUDIUS_OFFICIAL_DOMAIN_REGEX.test(hostname);
+    const isVerifiedNode = AUDIUS_DECENTRALIZED_NODE_REGEX.test(hostname);
+
+    if (!isOfficialAudius && !isVerifiedNode) {
+      return false;
+    }
+
+    // Must have a genuine stream endpoint path
+    const path = parsed.pathname.toLowerCase();
+    const hasValidPath =
+      path.includes("/stream") ||
+      path.includes("/tracks/cidstream") ||
+      path.endsWith(".m3u8") ||
+      path.endsWith(".mp3");
+
+    return hasValidPath;
   } catch {
     return false;
   }

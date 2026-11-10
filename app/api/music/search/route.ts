@@ -12,7 +12,11 @@ export async function GET(request: NextRequest) {
   try {
     const songs = await searchAudius(query, true);
     if (!songs.length) {
-      return NextResponse.json({ results: [], exhausted: true, note: "Bu aramada açık lisanslı parça yok." });
+      return NextResponse.json({
+        results: [],
+        exhausted: true,
+        note: "Bu arama kriterine uygun ve akış koşullarını sağlayan parça bulunamadı.",
+      });
     }
     const picked = await takeUnseen(supabase, songs, 12, "search");
     if (picked.error) return NextResponse.json({ error: picked.error, results: [] }, { status: 503 });

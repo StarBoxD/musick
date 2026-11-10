@@ -201,20 +201,36 @@ recordTest(
 );
 
 // -------------------------------------------------------------
-// Senaryo 7: Geçersiz streaming URL
+// Senaryo 7: Geçersiz ve Sahte (Lookalike) Streaming URL'leri
 // -------------------------------------------------------------
-const badUrl1 = "http://insecure-http.com/audio.mp3";
-const badUrl2 = "javascript:evil()";
-const goodAudiusUrl = "https://api.audius.co/v1/tracks/12345/stream?app_name=VYBE";
-const validBad1 = isValidStreamUrl(badUrl1);
-const validBad2 = isValidStreamUrl(badUrl2);
-const validGood = isValidStreamUrl(goodAudiusUrl);
+const badUrl1 = "http://api.audius.co/v1/tracks/123/stream"; // Non-HTTPS (plain HTTP)
+const badUrl2 = "https://fakeaudius.co/v1/tracks/123/stream"; // Lookalike domain
+const badUrl3 = "https://audius.co.attacker.com/v1/tracks/123/stream"; // Suffix attacker domain
+const badUrl4 = "https://audius-phishing.org/stream"; // Lookalike domain
+const badUrl5 = "javascript:evil()"; // Protocol injection
+
+const goodAudiusApiUrl = "https://api.audius.co/v1/tracks/12345/stream?app_name=VYBE";
+const goodCreatorNodeUrl = "https://audius-creator-9.theblueprint.xyz/tracks/cidstream/baeaaaiqse?signature=xyz";
+
+const vBad1 = isValidStreamUrl(badUrl1);
+const vBad2 = isValidStreamUrl(badUrl2);
+const vBad3 = isValidStreamUrl(badUrl3);
+const vBad4 = isValidStreamUrl(badUrl4);
+const vBad5 = isValidStreamUrl(badUrl5);
+
+const vGood1 = isValidStreamUrl(goodAudiusApiUrl);
+const vGood2 = isValidStreamUrl(goodCreatorNodeUrl);
+
+const allBadRejected = !vBad1 && !vBad2 && !vBad3 && !vBad4 && !vBad5;
+const allGoodAccepted = vGood1 && vGood2;
+
 recordTest(
   7,
-  "Geçersiz streaming URL",
-  "bad urls => false, valid https Audius url => true",
-  `bad1: ${validBad1}, bad2: ${validBad2}, good: ${validGood}`,
-  !validBad1 && !validBad2 && validGood
+  "Geçersiz ve Sahte (Lookalike) streaming URL denetimi",
+  "Sahte alan adları (fakeaudius.co, audius.co.evil.com) ve HTTP engellenir, gerçek Audius URL'leri kabul edilir",
+  `Sahte engellendi: ${allBadRejected}, Gerçek onaylandı: ${allGoodAccepted}`,
+  allBadRejected && allGoodAccepted,
+  { vBad1, vBad2, vBad3, vBad4, vBad5, vGood1, vGood2 }
 );
 
 // -------------------------------------------------------------

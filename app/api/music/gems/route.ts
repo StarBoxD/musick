@@ -23,7 +23,7 @@ async function handleGems() {
     return NextResponse.json({
       songs: picked.songs,
       exhausted: picked.exhausted,
-      note: "Yalnızca açık lisanslı Audius parçaları. Popüler aramayla çakışanlar elendi. Audius bir popülerlik puanı vermez.",
+      note: "Akış ve lisans filtrelerinden başarıyla geçen alternatif Türkçe Audius parçaları. Popüler listelerle çakışanlar elendi.",
     });
   } catch {
     return NextResponse.json({ error: "Audius'a ulaşılamadı.", songs: [] }, { status: 502 });

@@ -13,7 +13,7 @@ export default function HomePage() {
         <div className="eyebrow"><span/> YOUR SOUND. YOUR SPACE.</div>
         <h1>Ruhunun<br/><em>sesini</em> bul.</h1>
         <p>Yeni sesler keşfet. Kendi listeni oluştur. Her ana kendi ritmini ver.</p>
-        <div className="hero-buttons"><Link className="btn-primary" href="/login">VYBE'a katıl <ArrowUpRight size={17}/></Link><a className="btn-quiet" href="#discover">Keşfetmeye başla ↓</a></div>
+        <div className="hero-buttons"><Link className="btn-primary" href="/login">VYBE&apos;a katıl <ArrowUpRight size={17}/></Link><a className="btn-quiet" href="#discover">Keşfetmeye başla ↓</a></div>
         <div className="hero-record"><div className="record-inner"><AudioLines size={34}/></div></div>
         <div className="hero-foot">FIND YOUR FREQUENCY <span>01 — 03</span></div>
       </section>

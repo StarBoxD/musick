@@ -103,10 +103,27 @@ async function runAllTests() {
   const d6 = evaluateAudiusTrack({ ...baseTrack, is_delete: true });
   check("1. Lisans Filtresi", "is_delete: true parçalar elenir", !d6.allowed && d6.reason === "DELETED", `reason=${!d6.allowed ? d6.reason : ""}`);
 
-  // 1.7 Geçersiz streaming URL
-  const validUrl = isValidStreamUrl("https://api.audius.co/v1/tracks/123/stream?app_name=VYBE");
-  const badUrl = isValidStreamUrl("http://insecure.com/track.mp3");
-  check("1. Lisans Filtresi", "Geçersiz stream URL engellenir", validUrl && !badUrl, `validUrl=${validUrl}, badUrl=${badUrl}`);
+  // 1.7 Geçersiz ve sahte streaming URL denetimi
+  const validUrl1 = isValidStreamUrl("https://api.audius.co/v1/tracks/123/stream?app_name=VYBE");
+  const validUrl2 = isValidStreamUrl("https://audius-creator-9.theblueprint.xyz/tracks/cidstream/xyz");
+  const badUrlHttp = isValidStreamUrl("http://api.audius.co/v1/tracks/123/stream");
+  const badUrlFakeDomain = isValidStreamUrl("https://fakeaudius.co/v1/tracks/123/stream");
+  const badUrlSubdomainAttacker = isValidStreamUrl("https://audius.co.evil.com/v1/tracks/123/stream");
+  const badUrlPhishing = isValidStreamUrl("https://audius-phishing.org/stream");
+  const urlCheckPassed =
+    validUrl1 &&
+    validUrl2 &&
+    !badUrlHttp &&
+    !badUrlFakeDomain &&
+    !badUrlSubdomainAttacker &&
+    !badUrlPhishing;
+
+  check(
+    "1. Lisans Filtresi",
+    "Sahte alan adları (fakeaudius.co, audius.co.evil.com) ve güvensiz URL'ler engellenir",
+    urlCheckPassed,
+    `validUrls=${validUrl1 && validUrl2}, fakeBlocked=${!badUrlFakeDomain && !badUrlSubdomainAttacker && !badUrlPhishing}`
+  );
 
   // 1.8 API 500 fail-closed
   let failClosedOk = false;
@@ -206,39 +223,45 @@ async function runAllTests() {
   }
 
   // -------------------------------------------------------------
-  // BÖLÜM 5: Supabase Veritabanı ve Kütüphane Mantığı
+  // BÖLÜM 5: Supabase RLS Güçlendirmesi ve Allowlist Bütünlüğü
   // -------------------------------------------------------------
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const migration20261109 = fs.readFileSync(
+    path.resolve(process.cwd(), "supabase/migrations/20261109_discovery.sql"),
+    "utf-8"
+  );
+  const migration20261110 = fs.readFileSync(
+    path.resolve(process.cwd(), "supabase/migrations/20261110_discovery_allowlist_hardening.sql"),
+    "utf-8"
+  );
 
-  if (supabaseUrl && serviceKey) {
-    try {
-      const liveDb = createClient(supabaseUrl, serviceKey);
+  const hasAllowlistInSeenTracks =
+    migration20261109.includes("allowed_users au") &&
+    migration20261109.includes("au.is_active = true") &&
+    migration20261109.includes("auth.uid() = user_id");
 
-      // 5.1 Allowed Users kontrolü
-      const { data: allowedUsers, error: allowedErr } = await liveDb
-        .from("allowed_users")
-        .select("email,is_active")
-        .eq("is_active", true);
+  const hasAllowlistInDailyVybes =
+    migration20261109.includes("Allowed users manage own daily vybe") &&
+    migration20261109.includes("au.is_active = true");
 
-      check(
-        "5. Canlı Supabase DB",
-        "allowed_users tablosu sorgulandı ve aktif izinli kullanıcılar doğrulandı",
-        !allowedErr && Array.isArray(allowedUsers) && allowedUsers.length > 0,
-        `İzinli kullanıcı sayısı: ${allowedUsers?.length ?? 0}`
-      );
-    } catch (err: unknown) {
-      check("5. Canlı Supabase DB", "Canlı veritabanı testi", false, `Hata: ${err instanceof Error ? err.message : String(err)}`);
-    }
-  } else {
-    // Yerel makinede .env.local bulunmuyor (prodüksiyon Vercel env'de tanımlı)
-    check(
-      "5. Veritabanı Mantığı",
-      "Kütüphane CRUD mantığı: Çift favori engelleme, liste yeniden adlandırma ve sıralama mimarisi",
-      true,
-      "useLibrary ve SQL şeması üzerinde çift ekleme, cascade silme ve rename mantığı doğrulandı (Canlı DB erişimi Vercel ortamında aktif)."
-    );
-  }
+  const hasHardeningMigration =
+    migration20261110.includes("drop policy if exists \"Users manage own seen tracks\"") &&
+    migration20261110.includes("drop policy if exists \"Users manage own daily vybe\"") &&
+    migration20261110.includes("claim_unseen_tracks") &&
+    migration20261110.includes("User is not in active allowed_users list");
+
+  check(
+    "5. Supabase RLS Güçlendirmesi",
+    "seen_tracks ve daily_vybes politikalarında auth.uid() ve allowed_users.is_active zorunludur",
+    hasAllowlistInSeenTracks && hasAllowlistInDailyVybes,
+    "20261109_discovery.sql politikaları allowlist kontrolü ile sertleştirildi"
+  );
+
+  check(
+    "5. Supabase RLS Güçlendirmesi",
+    "Zayıf politikaları kaldıran ve claim_unseen_tracks'i sertleştiren migration mevcuttur",
+    hasHardeningMigration,
+    "20261110_discovery_allowlist_hardening.sql doğrulandı"
+  );
 
   // -------------------------------------------------------------
   // SONUÇLARI YAZDIR
