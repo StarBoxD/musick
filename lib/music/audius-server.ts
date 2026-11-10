@@ -14,7 +14,7 @@ const API = "https://api.audius.co/v1";
  */
 export function acceptedLicense(license?: string | null): string {
   const check = verifyTrackLicense(license);
-  return check.valid && check.normalized ? check.normalized : "";
+  return check.status === "VERIFIED" ? check.label : "";
 }
 
 /**

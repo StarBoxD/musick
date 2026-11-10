@@ -44,13 +44,9 @@ export default function MiniPlayer({ song, onClose, onPrev, onNext }: Props) {
     setPlaying(false); setTime(0); setDuration(0); setFull(false); setError("");
     if (!audio || !song) return;
 
-    // Lisans ve akış URL'si güvenlik doğrulaması
+    // Akış URL'si güvenlik doğrulaması
     if (!song.streamUrl || !isValidStreamUrl(song.streamUrl)) {
       setError("Geçerli bir akış adresi doğrulanamadı.");
-      return;
-    }
-    if (!song.license || song.license.trim() === "") {
-      setError("Lisans bilgisi doğrulanamayan parça oynatılamaz.");
       return;
     }
 
@@ -104,7 +100,7 @@ export default function MiniPlayer({ song, onClose, onPrev, onNext }: Props) {
         <button onClick={onNext} aria-label="Sonraki"><SkipForward size={16} /></button>
       </div>
       <label className="player-seek">
-        <span>{error || (full ? `${clock(time)} / ${clock(duration)} · ${song.license || "Audius Lisanslı"}` : "Lisans ve akış kontrol ediliyor...")}</span>
+        <span>{error || (full ? `${clock(time)} / ${clock(duration)} · ${song.license || "Lisans Belirtilmemiş"}` : "Lisans ve akış kontrol ediliyor...")}</span>
         <input type="range" min={0} max={duration || 0} step={0.1} value={Math.min(time, duration || 0)} disabled={!full} onChange={(event) => {
           const next = Number(event.target.value);
           if (audio) audio.currentTime = next;

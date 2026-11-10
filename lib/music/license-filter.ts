@@ -35,16 +35,25 @@ export type FilterRejectionReason =
   | "ACCESS_STREAM_DENIED"
   | "API_KEY_RESTRICTED"
   | "INVALID_DURATION"
-  | "MISSING_LICENSE"
-  | "UNVERIFIED_LICENSE"
   | "INVALID_STREAM_URL";
 
+export type LicenseStatus = "VERIFIED" | "LICENSE_UNVERIFIED";
+
 export type FilterDecision =
-  | { allowed: true; normalizedLicense: string }
-  | { allowed: false; reason: FilterRejectionReason; details: string };
+  | {
+      allowed: true;
+      licenseStatus: LicenseStatus;
+      licenseLabel: string;
+      rawLicense: string | null;
+    }
+  | {
+      allowed: false;
+      reason: FilterRejectionReason;
+      details: string;
+    };
 
 /**
- * Recognized and verified licenses supported by Audius:
+ * Verified license patterns defined in standard music schemas and Audius:
  * - "All Rights Reserved" (platform streaming terms and artist API permission apply)
  * - Creative Commons licenses (CC BY, CC BY-NC, CC BY-SA, CC BY-ND, CC BY-NC-SA, CC BY-NC-ND)
  * - Public Domain / CC0
@@ -62,25 +71,48 @@ const VERIFIED_LICENSE_PATTERNS: RegExp[] = [
 
 /**
  * Evaluates license text strictly against verified schemas.
- * Safe default: Empty, whitespace-only, or unrecognized licenses are NEVER
- * assumed to be royalty-free or streamable.
+ * - If verified: returns VERIFIED status and normalized license text.
+ * - If missing, empty, or unknown: classified as LICENSE_UNVERIFIED.
+ * Does NOT assume missing metadata is royalty-free.
  */
-export function verifyTrackLicense(rawLicense?: string | null): { valid: boolean; normalized?: string } {
+export function verifyTrackLicense(rawLicense?: string | null): {
+  status: LicenseStatus;
+  label: string;
+  raw: string | null;
+} {
   if (!rawLicense || typeof rawLicense !== "string") {
-    return { valid: false };
+    return {
+      status: "LICENSE_UNVERIFIED",
+      label: "Lisans Belirtilmemiş (Doğrulanmamış)",
+      raw: null,
+    };
   }
 
   const trimmed = rawLicense.trim();
   if (trimmed.length === 0) {
-    return { valid: false };
+    return {
+      status: "LICENSE_UNVERIFIED",
+      label: "Lisans Belirtilmemiş (Doğrulanmamış)",
+      raw: null,
+    };
   }
 
   const matchesVerified = VERIFIED_LICENSE_PATTERNS.some((pattern) => pattern.test(trimmed));
-  if (!matchesVerified) {
-    return { valid: false };
+  if (matchesVerified) {
+    return {
+      status: "VERIFIED",
+      label: trimmed,
+      raw: trimmed,
+    };
   }
 
-  return { valid: true, normalized: trimmed };
+  // Unknown license value: do not reject playback if technically allowed,
+  // but do NOT classify as verified or royalty-free.
+  return {
+    status: "LICENSE_UNVERIFIED",
+    label: `Doğrulanmamış Lisans: ${trimmed}`,
+    raw: trimmed,
+  };
 }
 
 /**
@@ -92,7 +124,6 @@ export function logLicenseRejection(
   reason: FilterRejectionReason,
   details: string
 ): void {
-  // Only log track metadata and technical rejection reason; no personal user info.
   if (process.env.NODE_ENV !== "production") {
     console.warn(`[VYBE Filter] Track "${trackId || "unknown"}" (${title || "untitled"}) REJECTED: ${reason} - ${details}`);
   }
@@ -111,17 +142,17 @@ export function evaluateAudiusTrack(
     return { allowed: false, reason: "INVALID_ID", details: "Parça kimliği (ID) bulunamadı veya boş." };
   }
 
-  // 2. Streamable permission from artist/platform
+  // 2. Streamable permission from artist/platform (STRICT REQUIREMENT)
   if (track.is_streamable !== true) {
     return { allowed: false, reason: "NOT_STREAMABLE", details: "Sanatçı veya platform bu parçanın API üzerinden akışına izin vermiyor (is_streamable=false)." };
   }
 
-  // 3. Network availability
+  // 3. Network availability (STRICT REQUIREMENT)
   if (track.is_available === false) {
     return { allowed: false, reason: "UNAVAILABLE", details: "Parça Audius ağında kullanılamıyor veya moderasyon/senkronizasyon hatası var (is_available=false)." };
   }
 
-  // 4. Deletion status
+  // 4. Deletion status (STRICT REQUIREMENT)
   if (track.is_delete === true) {
     return { allowed: false, reason: "DELETED", details: "Parça silinmiş olarak işaretlenmiş (is_delete=true)." };
   }
@@ -131,9 +162,8 @@ export function evaluateAudiusTrack(
     return { allowed: false, reason: "UNLISTED", details: "Parça liste dışı (is_unlisted=true) olduğu için genel akışa alınamaz." };
   }
 
-  // 6. Gated access check (NFT, tip, follow conditions)
+  // 6. Gated access check (NFT, tip, follow conditions) (STRICT REQUIREMENT)
   if (track.is_stream_gated === true || track.stream_conditions != null) {
-    // If stream is gated and access has not been granted, reject
     if (track.access?.stream !== true) {
       return { allowed: false, reason: "STREAM_GATED", details: "Parça özel erişim koşullarına (gated) tabi ve akış izni doğrulanmadı." };
     }
@@ -157,16 +187,18 @@ export function evaluateAudiusTrack(
     return { allowed: false, reason: "INVALID_DURATION", details: "Parça süresi geçersiz veya tam bir şarkı için çok kısa (<30s)." };
   }
 
-  // 10. Strict license verification (Safe Default: Missing metadata is NEVER assumed royalty-free)
+  // 10. License evaluation:
+  // Missing or unverified license does NOT reject track from API streaming if technical
+  // streaming permission (is_streamable, access.stream) is granted.
+  // Instead, it is classified with precise status (VERIFIED vs LICENSE_UNVERIFIED).
   const licenseCheck = verifyTrackLicense(track.license);
-  if (!licenseCheck.valid || !licenseCheck.normalized) {
-    if (!track.license || !track.license.trim()) {
-      return { allowed: false, reason: "MISSING_LICENSE", details: "Parçanın lisans metadata'sı eksik veya boş. Telifsiz kabul edilemez." };
-    }
-    return { allowed: false, reason: "UNVERIFIED_LICENSE", details: `Lisans bilgisi ('${track.license}') doğrulanmış şemalarla uyuşmuyor.` };
-  }
 
-  return { allowed: true, normalizedLicense: licenseCheck.normalized };
+  return {
+    allowed: true,
+    licenseStatus: licenseCheck.status,
+    licenseLabel: licenseCheck.label,
+    rawLicense: licenseCheck.raw,
+  };
 }
 
 /**
@@ -194,7 +226,7 @@ export function isValidStreamUrl(url: string): boolean {
 }
 
 /**
- * Converts a raw Audius track to a verified Song object if and only if it passes all filters.
+ * Converts a raw Audius track to a Song object if and only if it passes all filters.
  */
 export function sanitizeAudiusTrackToSong(track: AudiusTrack): Song | null {
   const decision = evaluateAudiusTrack(track);
@@ -225,7 +257,7 @@ export function sanitizeAudiusTrackToSong(track: AudiusTrack): Song | null {
     durationSeconds: Math.round(track.duration || 0),
     genre: track.genre?.trim() || "Müzik",
     sourceUrl: permalink,
-    license: decision.normalizedLicense,
+    license: decision.licenseLabel,
     provider: "audius",
   };
 }
