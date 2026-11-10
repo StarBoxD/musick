@@ -200,6 +200,7 @@ export default function DiscoverPanel({ favorites, onPlay, onFavorite, onAdd }: 
                 <span className="live-dot" /> ON AIR
               </span>
               {mood && <span className="mood-tag">{MOOD_META[mood].desc}</span>}
+              {currentSong.license && <span className="mood-tag">{currentSong.license}</span>}
             </div>
             <h2>{currentSong.title}</h2>
             <h3>{currentSong.artist}</h3>

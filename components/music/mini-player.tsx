@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play, SkipBack, SkipForward, Volume2, X } from "lucide-react";
 import type { Song } from "@/types/music";
+import { isValidStreamUrl } from "@/lib/music/license-filter";
 
 type Props = { song: Song | null; onClose: () => void; onPrev: () => void; onNext: () => void };
 
@@ -41,7 +42,18 @@ export default function MiniPlayer({ song, onClose, onPrev, onNext }: Props) {
     const audio = audioRef.current;
     listenedRef.current = false;
     setPlaying(false); setTime(0); setDuration(0); setFull(false); setError("");
-    if (!audio || !song?.streamUrl) return;
+    if (!audio || !song) return;
+
+    // Lisans ve akış URL'si güvenlik doğrulaması
+    if (!song.streamUrl || !isValidStreamUrl(song.streamUrl)) {
+      setError("Geçerli bir akış adresi doğrulanamadı.");
+      return;
+    }
+    if (!song.license || song.license.trim() === "") {
+      setError("Lisans bilgisi doğrulanamayan parça oynatılamaz.");
+      return;
+    }
+
     audio.src = song.streamUrl;
     audio.volume = volume;
     audio.play().then(() => setPlaying(true)).catch(() => setError("Oynatma başlamadı. Play'e bas."));
@@ -50,9 +62,9 @@ export default function MiniPlayer({ song, onClose, onPrev, onNext }: Props) {
   if (!song) return null;
   const audio = audioRef.current;
   const toggle = async () => {
-    if (!audio || error.startsWith("Gelen")) return;
+    if (!audio || error.includes("doğrulanamadı")) return;
     if (audio.paused) {
-      try { await audio.play(); setPlaying(true); setError(""); } catch { setError("Parça yüklenemedi."); setPlaying(false); }
+      try { await audio.play(); setPlaying(true); setError(""); } catch { setError("Akış başlatılamadı."); setPlaying(false); }
     } else { audio.pause(); setPlaying(false); }
   };
 
@@ -74,18 +86,25 @@ export default function MiniPlayer({ song, onClose, onPrev, onNext }: Props) {
           setDuration(reported);
           setFull(true);
         }}
-        onError={() => { setError("Parça yüklenemedi."); setPlaying(false); setFull(false); }}
+        onError={() => {
+          setError("İçerik sağlayıcıdan akış alınamadı veya lisans kısıtlaması mevcut.");
+          setPlaying(false);
+          setFull(false);
+        }}
         onEnded={() => { setPlaying(false); onNext(); }}
       />
       {song.artwork ? <img src={song.artwork} alt="" /> : <span className="player-fallback">V</span>}
-      <div className="player-track"><strong>{song.title}</strong><span>{song.artist}</span></div>
+      <div className="player-track">
+        <strong>{song.title}</strong>
+        <span>{song.artist}</span>
+      </div>
       <div className="player-transport">
         <button onClick={onPrev} aria-label="Önceki"><SkipBack size={16} /></button>
         <button className="player-control" onClick={toggle} aria-label={playing ? "Duraklat" : "Oynat"}>{playing ? <Pause size={18} /> : <Play size={18} />}</button>
         <button onClick={onNext} aria-label="Sonraki"><SkipForward size={16} /></button>
       </div>
       <label className="player-seek">
-        <span>{error || (full ? `${clock(time)} / ${clock(duration)} · Audius tam parça` : "Akış kontrol ediliyor")}</span>
+        <span>{error || (full ? `${clock(time)} / ${clock(duration)} · ${song.license || "Audius Lisanslı"}` : "Lisans ve akış kontrol ediliyor...")}</span>
         <input type="range" min={0} max={duration || 0} step={0.1} value={Math.min(time, duration || 0)} disabled={!full} onChange={(event) => {
           const next = Number(event.target.value);
           if (audio) audio.currentTime = next;

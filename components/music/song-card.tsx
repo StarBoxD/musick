@@ -38,7 +38,7 @@ export default function SongCard({
         <div className="song-info">
           <strong title={song.title}>{song.title}</strong>
           <span title={song.artist}>{song.artist}</span>
-          <small>{song.genre || "Müzik"}</small>
+          <small>{song.genre || "Müzik"} · {song.license || "Audius"}</small>
         </div>
         <div className="song-actions">
           <button
