@@ -22,3 +22,22 @@ export type Playlist = {
 export type Mood = "Happy" | "Sad" | "Chill" | "Energetic" | "Romantic" | "Focus" | "Nostalgic" | "Dark";
 
 export type SmartList = { name: string; songs: Song[] };
+
+export type PlaybackSourceType =
+  | "mood"
+  | "search"
+  | "playlist"
+  | "smart"
+  | "daily"
+  | "match"
+  | "gems"
+  | "favorites"
+  | "direct";
+
+export interface PlaybackSource {
+  type: PlaybackSourceType;
+  mood?: Mood;
+  query?: string;
+  playlistId?: string;
+  label?: string;
+}

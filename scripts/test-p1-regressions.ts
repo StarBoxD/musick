@@ -126,7 +126,7 @@ export function runP1Tests(): { total: number; passed: number; reports: TestRepo
 
   const doesNotHardcodeChillOnFetchMore =
     !dashboardSource.includes('postMusic("/api/music/discover", { mood: "Chill" })') &&
-    dashboardSource.includes("playbackSource.mood");
+    (dashboardSource.includes("activeSource.mood") || dashboardSource.includes("playbackSource.mood"));
 
   const discoverPanelPassesMoodSource =
     discoverPanelSource.includes('onPlay([picked], 0, { type: "mood", mood: nextMood })');
@@ -232,7 +232,7 @@ export function runP1Tests(): { total: number; passed: number; reports: TestRepo
     swSource.includes('url.pathname.startsWith("/auth/")');
 
   const swHandlesStaticCaches =
-    swSource.includes("vybe-static-v3") &&
+    (swSource.includes("vybe-static-v4") || swSource.includes("vybe-static-v3")) &&
     swSource.includes("caches.delete");
 
   const viewportAllowsZoom = !layoutSource.includes("maximumScale: 1");

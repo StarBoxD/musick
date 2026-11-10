@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { postMusic } from "@/lib/music/audius";
-import type { SmartList, Song } from "@/types/music";
+import type { PlaybackSource, SmartList, Song } from "@/types/music";
 import SongGrid from "@/components/music/song-grid";
 
 type Mode = "daily" | "match" | "gems" | "smart";
@@ -10,7 +10,7 @@ type Props = {
   mode: Mode;
   favorites: Song[];
   pendingFavorites?: Set<string>;
-  onPlay: (songs: Song[], index: number) => void;
+  onPlay: (songs: Song[], index: number, source?: PlaybackSource) => void;
   onFavorite: (song: Song) => void;
   onAdd: (song: Song) => void;
   onSaveSmart: (name: string, songs: Song[]) => void;
@@ -53,17 +53,42 @@ export default function PersonalPanel({
         {lists.map((list) => (
           <section key={list.name}>
             <div className="section-caption"><span>{list.name}</span><button className="text-action" onClick={() => onSaveSmart(list.name, list.songs)}>Kaydet</button></div>
-            <SongGrid songs={list.songs} favorites={favorites} pendingFavorites={pendingFavorites} empty="" onPlay={onPlay} onFavorite={onFavorite} onAdd={onAdd} />
+            <SongGrid
+              songs={list.songs}
+              favorites={favorites}
+              pendingFavorites={pendingFavorites}
+              empty=""
+              source={{ type: "smart", label: list.name }}
+              onPlay={onPlay}
+              onFavorite={onFavorite}
+              onAdd={onAdd}
+            />
           </section>
         ))}
       </div>
     );
   }
 
+  const defaultSource: PlaybackSource =
+    mode === "daily"
+      ? { type: "daily", label: "Günün Parçası" }
+      : mode === "match"
+      ? { type: "match", label: "Müzik Eşleşmesi" }
+      : { type: "gems", label: "Keşfedilmemiş Parçalar" };
+
   return (
     <div>
       {message && <p className="music-message">{message}</p>}
-      <SongGrid songs={songs} favorites={favorites} pendingFavorites={pendingFavorites} empty={loading ? "Hazırlanıyor..." : "Gösterilecek yeni parça yok."} onPlay={onPlay} onFavorite={onFavorite} onAdd={onAdd} />
+      <SongGrid
+        songs={songs}
+        favorites={favorites}
+        pendingFavorites={pendingFavorites}
+        empty={loading ? "Hazırlanıyor..." : "Gösterilecek yeni parça yok."}
+        source={defaultSource}
+        onPlay={onPlay}
+        onFavorite={onFavorite}
+        onAdd={onAdd}
+      />
     </div>
   );
 }

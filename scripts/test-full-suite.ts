@@ -322,13 +322,34 @@ async function runAllTests() {
   });
 
   // -------------------------------------------------------------
-  // BÖLÜM 8: 10 Viewport Boyutu & Responsive Matrisi
+  // BÖLÜM 8: 10 Viewport Boyutu & Kod Sözleşme Matrisi
   // -------------------------------------------------------------
   const { runResponsiveMatrixTests } = await import("./test-responsive-matrix");
   const respResult = runResponsiveMatrixTests();
   respResult.results.forEach((r) => {
     check(r.category, r.name, r.passed, r.details);
   });
+
+  // -------------------------------------------------------------
+  // BÖLÜM 9: Gerçek Tarayıcı (Headless Chrome/Edge) DOM Denetimi
+  // -------------------------------------------------------------
+  const { runRealBrowserAudit } = await import("./test-real-browser");
+  const browserResult = await runRealBrowserAudit();
+  if (browserResult.success) {
+    check(
+      "9. Gerçek Tarayıcı DOM Denetimi",
+      `10 Viewport Gerçek DOM Geometrisi ve Taşma Kontrolü (${browserResult.browserName})`,
+      true,
+      `scrollWidth <= clientWidth, taşma yok, mini-player çakışması yok, dokunma alanları >= 36px, 10 gerçek PNG ekran görüntüsü alındı`
+    );
+  } else {
+    check(
+      "9. Gerçek Tarayıcı DOM Denetimi",
+      "Gerçek Tarayıcı DOM Denetimi",
+      false,
+      browserResult.error || "Bazı genişliklerde DOM ölçümleri başarısız"
+    );
+  }
 
   // -------------------------------------------------------------
   // SONUÇLARI YAZDIR

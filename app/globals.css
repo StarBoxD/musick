@@ -290,7 +290,8 @@ a {
   display: none;
   align-items: center;
   gap: 6px;
-  padding: 7px 11px;
+  min-height: 36px;
+  padding: 0 12px;
   border-radius: 8px;
   border: 1px solid var(--line-strong);
   background: #14151f;
@@ -1186,6 +1187,8 @@ a {
   color: #7c8091;
   padding: 6px;
   border-radius: 7px;
+  min-width: 36px;
+  min-height: 36px;
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -1303,6 +1306,27 @@ a {
 
 .player-control:disabled {
   opacity: 0.4;
+}
+
+.player-close-btn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 8px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: 0.16s;
+  flex: none;
+}
+
+.player-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
 }
 
 .player-seek,

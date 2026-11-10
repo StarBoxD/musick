@@ -174,7 +174,7 @@ export function runResponsiveMatrixTests(): { total: number; passed: number; res
   const installBtn = fs.readFileSync(installBtnPath, "utf-8");
   const layout = fs.readFileSync(layoutPath, "utf-8");
 
-  // 1. Check all 10 viewports mapping
+  // 1. Check all 10 viewports mapping (Code contract)
   VIEWPORT_MATRIX.forEach((vp) => {
     let behaviorOk = false;
     if (vp.width <= 768) {
@@ -186,7 +186,7 @@ export function runResponsiveMatrixTests(): { total: number; passed: number; res
     }
 
     addCheck(
-      "1. Viewport Boyut & Matris Uyumluluğu",
+      "8.1 Kod Sözleşmesi: Viewport Eşleme Kuralları",
       `${vp.name} (${vp.width}x${vp.height})`,
       behaviorOk,
       `Hedef Tip: ${vp.type}, Kenar Çubuğu: ${vp.expectedSidebar}, Menü: ${vp.expectedNav}`
@@ -199,7 +199,7 @@ export function runResponsiveMatrixTests(): { total: number; passed: number; res
     css.includes("input[type=\"text\"]") &&
     css.includes("input[type=\"search\"]");
   addCheck(
-    "2. Mobil Responsive & CSS Kuralları",
+    "8.2 Kod Sözleşmesi: CSS ve Boyut Kuralları",
     "iOS Safari otomatik zoom engeli (16px input font-size kuralı)",
     hasSafari16pxInput,
     "<=768px media query içinde input ve arama alanları için 16px !important doğrulandı"
@@ -209,7 +209,7 @@ export function runResponsiveMatrixTests(): { total: number; passed: number; res
     css.includes("env(safe-area-inset-top") &&
     css.includes("env(safe-area-inset-bottom");
   addCheck(
-    "2. Mobil Responsive & CSS Kuralları",
+    "8.2 Kod Sözleşmesi: CSS ve Boyut Kuralları",
     "iOS Home bar ve Çentik güvenli alan (safe-area-inset) koruması",
     hasSafeAreas,
     "Sticky topbar ve mobile-bottom-nav ile mini-player için safe-area-inset entegrasyonu doğrulandı"
@@ -219,7 +219,7 @@ export function runResponsiveMatrixTests(): { total: number; passed: number; res
     css.includes("height: 100dvh") &&
     css.includes("overflow-x: hidden");
   addCheck(
-    "2. Mobil Responsive & CSS Kuralları",
+    "8.2 Kod Sözleşmesi: CSS ve Boyut Kuralları",
     "Dinamik Viewport Yüksekliği (100dvh) ve yatay taşma (overflow-x) kilidi",
     has100dvh,
     "html, body, .music-app ve .music-main için 100dvh ve overflow-x: hidden doğrulandı"
@@ -230,7 +230,7 @@ export function runResponsiveMatrixTests(): { total: number; passed: number; res
     css.includes(".player-control") &&
     css.includes("min-height: 44px");
   addCheck(
-    "2. Mobil Responsive & CSS Kuralları",
+    "8.2 Kod Sözleşmesi: CSS ve Boyut Kuralları",
     "Mobil dokunma hedefleri (Touch Targets) >= 40-44px",
     hasTouchTargets,
     "Player butonları 42-44px, icon-action butonları 40px, tab butonları 46px olarak doğrulandı"
@@ -242,7 +242,7 @@ export function runResponsiveMatrixTests(): { total: number; passed: number; res
     dashboard.includes("MORE_MOBILE_TABS") &&
     dashboard.includes("mobile-more-sheet");
   addCheck(
-    "3. Mobil Navigasyon Mimarisi",
+    "8.2 Kod Sözleşmesi: CSS ve Boyut Kuralları",
     "5 Tab mobil menü (4 ana sekme + 'Daha' alt çekmece) 320px uyumu",
     has5TabNav,
     "7 sekme yerine 4 ana + 1 Daha mimarisi ile 320px ekranda sıkışma ve taşma önlendi"
@@ -254,7 +254,7 @@ export function runResponsiveMatrixTests(): { total: number; passed: number; res
     css.includes(".music-sidebar {") &&
     css.includes(".side-link.active {");
   addCheck(
-    "4. Tablet Responsive Denetimi",
+    "8.2 Kod Sözleşmesi: CSS ve Boyut Kuralları",
     "80px ikon çubuğu (icon rail) ve belirgin aktif sekme göstergesi",
     hasTabletRail,
     "80px rail, 52x52px ikon düğmeleri ve lime-glow aktif göstergesi doğrulandı"
@@ -264,7 +264,7 @@ export function runResponsiveMatrixTests(): { total: number; passed: number; res
     dashboard.includes("title={item.label}") &&
     dashboard.includes("aria-label={item.label}");
   addCheck(
-    "4. Tablet Responsive Denetimi",
+    "8.2 Kod Sözleşmesi: CSS ve Boyut Kuralları",
     "Tablet ikon çubuğunda erişilebilirlik (title ve aria-label)",
     hasTabletAria,
     "Metin gizlendiğinde ikonların ne olduğu title ve aria-label ile bildiriliyor"
@@ -274,7 +274,7 @@ export function runResponsiveMatrixTests(): { total: number; passed: number; res
     css.includes(".mood-grid {") &&
     css.includes("repeat(4, minmax(0, 1fr))");
   addCheck(
-    "4. Tablet Responsive Denetimi",
+    "8.2 Kod Sözleşmesi: CSS ve Boyut Kuralları",
     "Tablet mod gridi 4 sütunlu dengeli yerleşim",
     hasTabletMoodGrid,
     "769px-1120px aralığında mood-grid 4 sütun olarak doğrulandı"
@@ -286,7 +286,7 @@ export function runResponsiveMatrixTests(): { total: number; passed: number; res
     miniPlayer.includes("onPointerUp") &&
     miniPlayer.includes("onPointerCancel");
   addCheck(
-    "5. Mini Player & Dokunmatik Kontroller",
+    "8.2 Kod Sözleşmesi: CSS ve Boyut Kuralları",
     "Süre kaydırma çubuğunda (seek slider) Pointer Events desteği",
     hasPointerEvents,
     "onPointerDown, onPointerUp ve onPointerCancel ile takılı kalma (stuck isSeeking) sorunu çözüldü"
@@ -296,7 +296,7 @@ export function runResponsiveMatrixTests(): { total: number; passed: number; res
     miniPlayer.includes("volumeRef.current = volume") &&
     miniPlayer.includes("audioRef.current.volume = volume;");
   addCheck(
-    "5. Mini Player & Dokunmatik Kontroller",
+    "8.2 Kod Sözleşmesi: CSS ve Boyut Kuralları",
     "Ses seviyesi değişikliğinde şarkının baştan başlamaması",
     hasVolumeIsolation,
     "Volume değişimi yalnızca audio.volume değerini günceller, playback effectini tetiklemez"
@@ -307,7 +307,7 @@ export function runResponsiveMatrixTests(): { total: number; passed: number; res
     installBtn.includes("Macintosh") &&
     installBtn.includes("maxTouchPoints");
   addCheck(
-    "6. PWA & Cihaz Tespiti",
+    "8.2 Kod Sözleşmesi: CSS ve Boyut Kuralları",
     "iPadOS Masaüstü Safari Modu tespiti (Macintosh + maxTouchPoints > 1)",
     hasIPadOSDetection,
     "iPadOS Safari masaüstü gibi davrandığında dahi dokunmatik cihaz olarak doğru tespit ediliyor"
@@ -317,7 +317,7 @@ export function runResponsiveMatrixTests(): { total: number; passed: number; res
     installBtn.includes("if (installed) {") &&
     installBtn.includes("return null;");
   addCheck(
-    "6. PWA & Cihaz Tespiti",
+    "8.2 Kod Sözleşmesi: CSS ve Boyut Kuralları",
     "PWA yüklü olduğunda butonun DOM'dan temiz şekilde kaldırılması",
     hasCleanInstalledReturn,
     "installed === true durumunda 'null' dönerek arayüzü kalabalıktan temizler"
@@ -328,7 +328,7 @@ export function runResponsiveMatrixTests(): { total: number; passed: number; res
     !layout.includes("maximumScale") &&
     !layout.includes("userScalable: false");
   addCheck(
-    "7. Erişilebilirlik",
+    "8.2 Kod Sözleşmesi: CSS ve Boyut Kuralları",
     "Kullanıcı yakınlaştırmasının (pinch-to-zoom) engellenmemesi",
     hasAccessibleZoom,
     "layout.tsx içinde maximumScale ve userScalable kaldırıldı, WCAG 1.4.4 sağlandı"

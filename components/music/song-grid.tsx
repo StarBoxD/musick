@@ -1,6 +1,6 @@
 "use client";
 
-import type { Song } from "@/types/music";
+import type { PlaybackSource, Song } from "@/types/music";
 import SongCard from "@/components/music/song-card";
 
 type Props = {
@@ -8,7 +8,8 @@ type Props = {
   favorites: Song[];
   pendingFavorites?: Set<string>;
   empty: string;
-  onPlay: (songs: Song[], index: number) => void;
+  source?: PlaybackSource;
+  onPlay: (songs: Song[], index: number, source?: PlaybackSource) => void;
   onFavorite: (song: Song) => void;
   onAdd: (song: Song) => void;
   onRemove?: (song: Song) => void;
@@ -19,6 +20,7 @@ export default function SongGrid({
   favorites,
   pendingFavorites,
   empty,
+  source,
   onPlay,
   onFavorite,
   onAdd,
@@ -33,7 +35,7 @@ export default function SongGrid({
           song={song}
           favorite={favorites.some((item) => item.trackId === song.trackId)}
           isPendingFavorite={pendingFavorites?.has(song.trackId)}
-          onPlay={() => onPlay(songs, index)}
+          onPlay={() => onPlay(songs, index, source)}
           onFavorite={onFavorite}
           onAddToPlaylist={onAdd}
           onRemove={onRemove}

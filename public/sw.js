@@ -1,6 +1,6 @@
-const CACHE_NAME = "vybe-static-v3";
+const CACHE_NAME = "vybe-static-v4";
 
-// Static assets to pre-cache on install
+// Yalnızca güvenli statik varlıklar ön-önbelleğe (pre-cache) alınır
 const PRECACHE_ASSETS = [
   "/manifest.webmanifest",
   "/icon.svg"
@@ -12,7 +12,7 @@ self.addEventListener("install", (event) => {
       .open(CACHE_NAME)
       .then((cache) => cache.addAll(PRECACHE_ASSETS))
       .catch(() => {
-        // Precache error during install should not break service worker registration
+        // Precache hatası service worker kurulumunu engellememeli
       })
   );
   self.skipWaiting();
@@ -34,19 +34,27 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(event.request.url);
 
-  // 1. Strict origin check: ignore cross-origin requests (Audius audio, CDNs, Supabase external API)
+  // 1. Farklı origin isteklerini (Audius audio akışı, harici API'ler) service worker dışında bırak
   if (url.origin !== self.location.origin) return;
 
-  // 2. Strict privacy check: NEVER cache user/private endpoints, auth session data or dynamic API
+  // 2. Gizlilik ve Güvenlik: /dashboard, /api, /auth, /login ve kullanıcıya özel hiçbir sayfayı cache'e alma
   if (
     url.pathname.startsWith("/api/") ||
     url.pathname.startsWith("/auth/") ||
-    url.pathname.startsWith("/login")
+    url.pathname.startsWith("/login") ||
+    url.pathname === "/dashboard" ||
+    url.pathname.startsWith("/dashboard/")
   ) {
     return;
   }
 
-  // 3. Static asset caching (JS chunks, CSS, icons, fonts)
+  // 3. Kullanıcı oturumu gerektiren veya HTML navigasyon isteklerini doğrudan ağa bırak
+  // Farklı hesapla giriş ve çıkış senaryolarında önceki kullanıcıya ait HTML asla gösterilmez
+  if (event.request.mode === "navigate") {
+    return;
+  }
+
+  // 4. Yalnızca güvenli, derlenmiş statik varlıkları önbellekle (JS, CSS, ikonlar)
   if (
     url.pathname.startsWith("/_next/static/") ||
     url.pathname.endsWith(".svg") ||
@@ -61,30 +69,13 @@ self.addEventListener("fetch", (event) => {
             return networkResponse;
           }
           const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+          // event.waitUntil ile yazmanın tamamlanması güvenceye alınır
+          event.waitUntil(
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache))
+          );
           return networkResponse;
         });
       })
-    );
-    return;
-  }
-
-  // 4. Navigation requests (HTML pages): Network-first with cached fallback
-  if (event.request.mode === "navigate") {
-    event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-          }
-          return networkResponse;
-        })
-        .catch(() => caches.match(event.request).then((cached) => cached || caches.match("/dashboard")))
     );
   }
 });

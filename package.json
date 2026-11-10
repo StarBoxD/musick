@@ -9,7 +9,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "npx tsx scripts/test-full-suite.ts",
-    "test:filter": "npx tsx scripts/test-license-filter.ts"
+    "test:filter": "npx tsx scripts/test-license-filter.ts",
+    "test:browser": "npx tsx scripts/test-real-browser.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

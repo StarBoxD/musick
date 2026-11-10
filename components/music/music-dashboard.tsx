@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import {
   AudioLines,
@@ -89,63 +89,145 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
   const [queue, setQueue] = useState<Song[]>([]);
   const [index, setIndex] = useState(0);
   const [playbackSource, setPlaybackSource] = useState<PlaybackSource | null>(null);
+  const isFetchingMoreRef = useRef(false);
+  const fetchRequestIdRef = useRef(0);
   const [playlistName, setPlaylistName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const song = queue[index] ?? null;
 
   const play = (songs: Song[], nextIndex: number, source?: PlaybackSource) => {
+    // Kaynak değiştiğinde önceki kuyruk isteklerini geçersiz kıl
+    fetchRequestIdRef.current += 1;
     setQueue(songs);
     setIndex(nextIndex);
-    if (source) {
-      setPlaybackSource(source);
-    }
+    // Yeni oynatma başladığında önceki playbackSource bilgisi asla yanlışlıkla korunmaz
+    setPlaybackSource(source ?? { type: "direct" });
   };
 
   const fetchMoreSongs = async () => {
+    // 1. Aynı anda birden fazla fetchMoreSongs isteği başlamasını engelle
+    if (isFetchingMoreRef.current) return;
+    if (!playbackSource) {
+      library.setMessage("Kuyruktaki tüm parçalar dinlendi.");
+      return;
+    }
+
+    const currentRequestId = ++fetchRequestIdRef.current;
+    const activeSource = playbackSource;
+    isFetchingMoreRef.current = true;
+
     try {
-      if (!playbackSource) {
-        library.setMessage("Kuyruktaki tüm parçalar dinlendi.");
-        return;
-      }
-
       // 1. Mood kaynağından çalıyorsa kullanıcının seçtiği mood KORUNUR (Asla otomatik Chill'e geçilmez)
-      if (playbackSource.type === "mood" && playbackSource.mood) {
+      if (activeSource.type === "mood" && activeSource.mood) {
         const { postMusic } = await import("@/lib/music/audius");
-        const data = await postMusic("/api/music/discover", { mood: playbackSource.mood });
-        const incoming = (data.songs ?? []) as Song[];
-        // Halihazırda kuyrukta olan parçaları ele (mükerrer ve sonsuz tekrarı önle)
-        const fresh = incoming.filter((s) => !queue.some((q) => q.trackId === s.trackId));
+        const data = await postMusic("/api/music/discover", { mood: activeSource.mood });
 
-        if (fresh.length > 0) {
-          setQueue((prev) => [...prev, ...fresh]);
-        } else {
-          library.setMessage(`${playbackSource.mood} kanalındaki tüm parçalar dinlendi.`);
+        // Kaynak değiştiyse eski isteğin yeni kuyruğa parça eklemesini engelle
+        if (currentRequestId !== fetchRequestIdRef.current) return;
+
+        const incoming = (data.songs ?? []) as Song[];
+        let addedCount = 0;
+
+        setQueue((prevQueue) => {
+          if (currentRequestId !== fetchRequestIdRef.current) return prevQueue;
+          const fresh = incoming.filter((s) => !prevQueue.some((q) => q.trackId === s.trackId));
+          addedCount = fresh.length;
+          return addedCount > 0 ? [...prevQueue, ...fresh] : prevQueue;
+        });
+
+        if (addedCount === 0) {
+          library.setMessage(`${activeSource.mood} frekansındaki tüm parçalar dinlendi.`);
         }
         return;
       }
 
-      // 2. Kullanıcı çalma listesi çalıyorsa
-      if (playbackSource.type === "playlist") {
-        library.setMessage("Çalma listesi tamamlandı.");
+      // 2. Müzik Eşleşmesi (Match)
+      if (activeSource.type === "match") {
+        const { postMusic } = await import("@/lib/music/audius");
+        const data = await postMusic("/api/music/match");
+
+        if (currentRequestId !== fetchRequestIdRef.current) return;
+
+        const incoming = (data.songs ?? []) as Song[];
+        let addedCount = 0;
+
+        setQueue((prevQueue) => {
+          if (currentRequestId !== fetchRequestIdRef.current) return prevQueue;
+          const fresh = incoming.filter((s) => !prevQueue.some((q) => q.trackId === s.trackId));
+          addedCount = fresh.length;
+          return addedCount > 0 ? [...prevQueue, ...fresh] : prevQueue;
+        });
+
+        if (addedCount === 0) {
+          library.setMessage("Eşleşme kanalındaki tüm parçalar dinlendi.");
+        }
         return;
       }
 
-      // 3. Arama sonuçları çalıyorsa
-      if (playbackSource.type === "search") {
-        library.setMessage("Arama sonuçlarındaki tüm parçalar dinlendi.");
+      // 3. Keşfedilmemiş Parçalar (Gems)
+      if (activeSource.type === "gems") {
+        const { postMusic } = await import("@/lib/music/audius");
+        const data = await postMusic("/api/music/gems");
+
+        if (currentRequestId !== fetchRequestIdRef.current) return;
+
+        const incoming = (data.songs ?? []) as Song[];
+        let addedCount = 0;
+
+        setQueue((prevQueue) => {
+          if (currentRequestId !== fetchRequestIdRef.current) return prevQueue;
+          const fresh = incoming.filter((s) => !prevQueue.some((q) => q.trackId === s.trackId));
+          addedCount = fresh.length;
+          return addedCount > 0 ? [...prevQueue, ...fresh] : prevQueue;
+        });
+
+        if (addedCount === 0) {
+          library.setMessage("Keşfedilmemiş parçalar listesi tamamlandı.");
+        }
         return;
       }
 
-      // 4. Günlük vybe
-      if (playbackSource.type === "daily") {
+      // 4. Sabit / Tamamlanabilir Koleksiyonlar
+      if (activeSource.type === "favorites") {
+        library.setMessage("Favorilerdeki tüm parçalar dinlendi.");
+        return;
+      }
+
+      if (activeSource.type === "playlist") {
+        library.setMessage(
+          activeSource.label ? `"${activeSource.label}" listesi tamamlandı.` : "Çalma listesi tamamlandı."
+        );
+        return;
+      }
+
+      if (activeSource.type === "smart") {
+        library.setMessage(
+          activeSource.label ? `"${activeSource.label}" listesi tamamlandı.` : "Akıllı liste tamamlandı."
+        );
+        return;
+      }
+
+      if (activeSource.type === "daily") {
         library.setMessage("Günün parçası tamamlandı.");
+        return;
+      }
+
+      if (activeSource.type === "search") {
+        library.setMessage(
+          activeSource.query
+            ? `"${activeSource.query}" arama sonuçları tamamlandı.`
+            : "Arama sonuçlarındaki tüm parçalar dinlendi."
+        );
         return;
       }
 
       library.setMessage("Kuyruktaki tüm parçalar dinlendi.");
     } catch {
-      // sessizce geç
+      // Hata durumunda kullanıcıya anlaşılır mesaj göster
+      library.setMessage("Yeni parçalar yüklenirken bir bağlantı sorunu oluştu.");
+    } finally {
+      isFetchingMoreRef.current = false;
     }
   };
 
@@ -290,6 +372,7 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
             favorites={library.favorites}
             pendingFavorites={library.pendingFavorites}
             empty="Henüz favorilere eklenmiş bir parça yok."
+            source={{ type: "favorites", label: "Favoriler" }}
             onPlay={play}
             onFavorite={library.toggleFavorite}
             onAdd={add}
@@ -454,7 +537,22 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
                   favorites={library.favorites}
                   pendingFavorites={library.pendingFavorites}
                   empty="Bu listede henüz parça yok. Radyoda veya aramada beğendiğin şarkılarda 'Listeye Ekle' butonuna bas."
-                  onPlay={(songs, idx) => play(songs, idx, { type: "playlist", playlistId: activePlaylistObj.id })}
+                  source={{
+                    type: "playlist",
+                    playlistId: activePlaylistObj.id,
+                    label: activePlaylistObj.name,
+                  }}
+                  onPlay={(songs, idx, src) =>
+                    play(
+                      songs,
+                      idx,
+                      src ?? {
+                        type: "playlist",
+                        playlistId: activePlaylistObj.id,
+                        label: activePlaylistObj.name,
+                      }
+                    )
+                  }
                   onFavorite={library.toggleFavorite}
                   onAdd={add}
                   onRemove={library.removeFromPlaylist}

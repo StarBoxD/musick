@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VYBE Real Browser Test Harness</title>
+  <link rel="stylesheet" href="../app/globals.css">
+  <style>
+    /* Test harness resets to match Next.js root layout */
+    #__next, #root {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="music-app" id="music-app">
+    <!-- Sol Kenar Çubuğu (Tablet'te 80px rail, Masaüstü'nde 248px, Mobilde gizli) -->
+    <aside class="music-sidebar" id="music-sidebar">
+      <div class="sidebar-brand-row">
+        <a href="/dashboard" class="brand">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/></svg>
+          <span class="brand-text">VYBE<span class="lime">.</span></span>
+        </a>
+      </div>
+
+      <nav class="side-nav" aria-label="Ana menü">
+        <button type="button" class="side-link active" title="Keşfet" aria-label="Keşfet">
+          <span class="side-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span>
+          <span class="side-text">Keşfet</span>
+        </button>
+        <button type="button" class="side-link" title="Günlük" aria-label="Günlük">
+          <span class="side-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/></svg></span>
+          <span class="side-text">Günlük</span>
+        </button>
+        <button type="button" class="side-link" title="Müzik Eşleşmesi" aria-label="Müzik Eşleşmesi">
+          <span class="side-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/></svg></span>
+          <span class="side-text">Eşleşme</span>
+        </button>
+        <button type="button" class="side-link" title="Keşfedilmemiş Parçalar" aria-label="Keşfedilmemiş Parçalar">
+          <span class="side-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6 3 18 3 22 9 12 22 2 9"/></svg></span>
+          <span class="side-text">Cevherler</span>
+        </button>
+        <button type="button" class="side-link" title="Akıllı Listeler" aria-label="Akıllı Listeler">
+          <span class="side-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/></svg></span>
+          <span class="side-text">Akıllı Listeler</span>
+        </button>
+      </nav>
+
+      <div class="side-divider" role="separator"></div>
+
+      <nav class="side-nav" aria-label="Arşiv">
+        <button type="button" class="side-link" title="Favoriler" aria-label="Favoriler">
+          <span class="side-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></span>
+          <span class="side-text">Favoriler</span>
+        </button>
+        <button type="button" class="side-link" title="Çalma Listeleri" aria-label="Çalma Listeleri">
+          <span class="side-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15V6"/><path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg></span>
+          <span class="side-text">Koleksiyonlar</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <button type="button" class="install-btn-compact" id="install-btn-sidebar" title="Uygulamayı İndir">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>İndir</span>
+        </button>
+        <div class="side-user">
+          <span class="side-avatar">E</span>
+          <span class="side-name">Efe</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Sağ / Ana İçerik Alanı -->
+    <main class="music-main" id="music-main">
+      <header class="music-topbar">
+        <div class="mobile-brand">
+          <a href="/dashboard" class="brand">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/></svg>
+            VYBE<span class="lime">.</span>
+          </a>
+          <span class="eyebrow">MOD SEÇİMİ</span>
+        </div>
+        <div class="topbar-right">
+          <button type="button" class="install-btn-compact" id="install-btn-topbar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Uygulamayı Yükle</span>
+          </button>
+          <div class="mobile-user">
+            <span class="side-avatar mobile-avatar">E</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="music-heading">
+        <div>
+          <h1>Hangi frekanstasın?</h1>
+          <p>Yapay zeka ile filtrelenmiş Türkçe bağımsız ve alternatif akışlar.</p>
+        </div>
+      </div>
+
+      <!-- Mod Gridi (Mobilde 2 sütun, Tablette 4 sütun) -->
+      <div class="mood-grid" id="mood-grid">
+        <button type="button" class="mood-card active">
+          <div class="mood-card-top">
+            <span class="mood-icon-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/></svg></span>
+            <span class="mood-tag-code">POP</span>
+          </div>
+          <div class="mood-card-bottom">
+            <b>Upbeat</b>
+            <small>Hareketli Pop</small>
+          </div>
+        </button>
+        <button type="button" class="mood-card">
+          <div class="mood-card-top">
+            <span class="mood-icon-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/></svg></span>
+            <span class="mood-tag-code">SLOW</span>
+          </div>
+          <div class="mood-card-bottom">
+            <b>Melancholy</b>
+            <small>Duygusal</small>
+          </div>
+        </button>
+        <button type="button" class="mood-card">
+          <div class="mood-card-top">
+            <span class="mood-icon-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+            <span class="mood-tag-code">INDIE</span>
+          </div>
+          <div class="mood-card-bottom">
+            <b>Chill</b>
+            <small>Alternatif</small>
+          </div>
+        </button>
+        <button type="button" class="mood-card">
+          <div class="mood-card-top">
+            <span class="mood-icon-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+            <span class="mood-tag-code">RAP</span>
+          </div>
+          <div class="mood-card-bottom">
+            <b>High Tempo</b>
+            <small>Türkçe Rap</small>
+          </div>
+        </button>
+      </div>
+
+      <!-- Çalma Listesi Oluşturma Barı (Taşma testi için) -->
+      <div style="margin: 20px 0;">
+        <form class="playlist-create-bar" id="playlist-form">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+          <input type="text" id="test-input" placeholder="Yeni liste adı yaz (örn. Gece Sürüşü)..." value="Gece Sürüşü">
+          <button type="submit" id="btn-create-playlist">Oluştur</button>
+        </form>
+      </div>
+
+      <!-- Şarkı Gridi (Test için) -->
+      <div class="song-grid" id="song-grid">
+        <div class="song-card">
+          <button type="button" class="song-cover" aria-label="Antidepresan çal">
+            <span class="song-cover-fallback">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+            </span>
+            <span class="cover-play">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </span>
+          </button>
+          <div class="song-info">
+            <strong>Antidepresan</strong>
+            <span>Mert Demir & Mabel Matiz</span>
+          </div>
+          <div class="song-actions">
+            <button type="button" class="icon-action" aria-label="Favori">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            </button>
+            <button type="button" class="icon-action" aria-label="Listeye Ekle">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Telefon ve Küçük Tablet Alt Navigasyon Barı -->
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Mobil alt menü">
+      <button type="button" class="mobile-tab active" id="tab-discover">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+        <span>Keşfet</span>
+      </button>
+      <button type="button" class="mobile-tab" id="tab-daily">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/></svg>
+        <span>Günlük</span>
+      </button>
+      <button type="button" class="mobile-tab" id="tab-smart">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/></svg>
+        <span>Akıllı</span>
+      </button>
+      <button type="button" class="mobile-tab" id="tab-playlists">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15V6"/><path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
+        <span>Listeler</span>
+      </button>
+      <button type="button" class="mobile-tab" id="tab-more" aria-expanded="false">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        <span>Daha</span>
+      </button>
+    </nav>
+
+    <!-- Daha Fazla Alt Çekmecesi -->
+    <div class="mobile-more-backdrop" id="more-backdrop" style="display: none;">
+      <div class="mobile-more-sheet" id="more-sheet">
+        <div class="mobile-more-header">
+          <span>DİĞER BÖLÜMLER</span>
+          <button type="button" class="mobile-more-close" id="btn-close-sheet" aria-label="Kapat">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="mobile-more-grid">
+          <button type="button" class="mobile-more-card" id="card-match">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/></svg>
+            <div class="mobile-more-card-text">
+              <strong>Müzik Eşleşmesi</strong>
+              <small>Zevkine uygun akıllı öneriler</small>
+            </div>
+          </button>
+          <button type="button" class="mobile-more-card" id="card-gems">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6 3 18 3 22 9 12 22 2 9"/></svg>
+            <div class="mobile-more-card-text">
+              <strong>Keşfedilmemiş Parçalar</strong>
+              <small>Gizli kalmış bağımsız eserler</small>
+            </div>
+          </button>
+          <button type="button" class="mobile-more-card" id="card-favorites">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            <div class="mobile-more-card-text">
+              <strong>Favoriler</strong>
+              <small>Tüm kayıtlı arşivin</small>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mini Player -->
+    <div class="mini-player" id="mini-player" role="region" aria-label="Müzik Oynatıcı">
+      <div class="player-fallback">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+
+      <div class="player-info">
+        <strong id="player-title">Duman - Haberin Yok Ölüyorum</strong>
+        <span id="player-artist">Duman</span>
+      </div>
+
+      <div class="player-transport">
+        <button type="button" class="player-control" id="player-prev-btn" aria-label="Önceki Şarkı">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+        </button>
+        <button type="button" class="player-control player-play-btn" id="player-play-btn" aria-label="Oynat">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </button>
+        <button type="button" class="player-control" id="player-next-btn" aria-label="Sonraki Şarkı">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+        </button>
+      </div>
+
+      <div class="player-seek">
+        <span class="player-time" id="player-time">0:45</span>
+        <input type="range" min="0" max="230" value="45" aria-label="Şarkı Süresi" id="player-slider">
+        <span class="player-time" id="player-duration">3:50</span>
+      </div>
+
+      <div class="player-volume">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        <input type="range" min="0" max="1" step="0.05" value="0.8" aria-label="Ses Düzeyi">
+      </div>
+
+      <button type="button" class="player-close-btn" id="player-close-btn" aria-label="Kapat">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Sheet Açma / Kapatma Davranışı
+    const tabMore = document.getElementById('tab-more');
+    const backdrop = document.getElementById('more-backdrop');
+    const btnClose = document.getElementById('btn-close-sheet');
+
+    tabMore.addEventListener('click', () => {
+      backdrop.style.display = 'flex';
+      tabMore.setAttribute('aria-expanded', 'true');
+    });
+
+    btnClose.addEventListener('click', () => {
+      backdrop.style.display = 'none';
+      tabMore.setAttribute('aria-expanded', 'false');
+    });
+
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) {
+        backdrop.style.display = 'none';
+        tabMore.setAttribute('aria-expanded', 'false');
+      }
+    });
+  </script>
+</body>
+</html>

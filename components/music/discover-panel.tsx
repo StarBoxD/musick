@@ -18,14 +18,9 @@ import {
 } from "lucide-react";
 import { postMusic, searchMusic } from "@/lib/music/audius";
 import { MOODS } from "@/lib/music/moods";
-import type { Mood, Song } from "@/types/music";
+import type { Mood, PlaybackSource, Song } from "@/types/music";
 
-export interface PlaybackSource {
-  type: "mood" | "search" | "playlist" | "smart" | "daily" | "direct";
-  mood?: Mood;
-  query?: string;
-  playlistId?: string;
-}
+export type { PlaybackSource, PlaybackSourceType } from "@/types/music";
 
 type Props = {
   favorites: Song[];
