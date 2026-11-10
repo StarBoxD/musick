@@ -2,7 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AudioLines, Compass, Gem, Heart, ListMusic, Sparkles, SunMedium, Wand2 } from "lucide-react";
+import {
+  AudioLines,
+  Compass,
+  FolderPlus,
+  Gem,
+  Heart,
+  ListMusic,
+  Play,
+  Sparkles,
+  SunMedium,
+  Trash2,
+  Wand2,
+} from "lucide-react";
 import type { Song } from "@/types/music";
 import SignOutButton from "@/components/sign-out-button";
 import DiscoverPanel from "@/components/music/discover-panel";
@@ -14,10 +26,10 @@ import InstallAppButton from "@/components/pwa/install-app-button";
 
 type Tab = "discover" | "daily" | "match" | "gems" | "smart" | "favorites" | "playlists";
 const TABS: { id: Tab; label: string; icon: typeof Compass }[] = [
-  { id: "discover", label: "Keşfet", icon: Compass },
+  { id: "discover", label: "Radyo", icon: Compass },
   { id: "daily", label: "Günlük", icon: SunMedium },
   { id: "match", label: "Eşleşme", icon: Sparkles },
-  { id: "gems", label: "Gizli", icon: Gem },
+  { id: "gems", label: "Alternatif", icon: Gem },
   { id: "smart", label: "Akıllı", icon: Wand2 },
   { id: "favorites", label: "Favoriler", icon: Heart },
   { id: "playlists", label: "Listeler", icon: ListMusic },
@@ -25,39 +37,39 @@ const TABS: { id: Tab; label: string; icon: typeof Compass }[] = [
 
 const COPY: Record<Tab, { kicker: string; title: string; subtitle: string }> = {
   discover: {
-    kicker: "TÜRKÇE ÖZEL RADYO",
-    title: "Bugün hangi ruh hâli?",
-    subtitle: "Bir moda dokun; liste kalabalığı olmadan şarkı anında çalmaya başlasın.",
+    kicker: "CANLI FREKANS",
+    title: "Hangi frekanstasın?",
+    subtitle: "Bir kanal seç; liste kalabalığı olmadan parça anında çalmaya başlasın.",
   },
   daily: {
-    kicker: "GÜNÜN FREKANSI",
-    title: "Bugünün özel parçası.",
-    subtitle: "Her gün senin için seçilen tek bir Türkçe parça.",
+    kicker: "GÜNÜN SEÇKİSİ",
+    title: "Bugünün parçası.",
+    subtitle: "Her gün senin için seçilen tek bir Türkçe kayıt.",
   },
   match: {
-    kicker: "VYBE EŞLEŞME",
-    title: "Zevkine yakın sesler.",
-    subtitle: "Favorilediğin sanatçılara göre hiç duymadığın parçalar.",
+    kicker: "ZEVK ANALİZİ",
+    title: "Frekansına yakın sesler.",
+    subtitle: "Favorilediğin sanatçılara göre hiç dinlemediğin parçalar.",
   },
   gems: {
-    kicker: "GİZLİ HAZİNELER",
+    kicker: "ALTERNATİF SAHNE",
     title: "Ana akımın ötesinde.",
     subtitle: "Bağımsız ve alternatif Türkçe sahneden seçkiler.",
   },
   smart: {
-    kicker: "AKILLI LİSTELER",
-    title: "Sana özel kurulan listeler.",
-    subtitle: "Favorilerinden otomatik derlenen ruh hâli listeleri.",
+    kicker: "OTOMATİK KURGU",
+    title: "Akıllı listeler.",
+    subtitle: "Favorilerinden otomatik derlenen dinamik listeler.",
   },
   favorites: {
-    kicker: "KOLEKSİYON",
-    title: "Favorilediğin parçalar.",
-    subtitle: "Kalp bıraktığın tüm şarkılar burada saklanır.",
+    kicker: "ARŞİV",
+    title: "Favoriler.",
+    subtitle: "Kaydettiğin tüm parçalar burada tutulur.",
   },
   playlists: {
-    kicker: "PLAYLİSTLER",
-    title: "Kendi listelerin.",
-    subtitle: "Özel çalma listelerini oluştur ve yönet.",
+    kicker: "KOLEKSİYONLAR",
+    title: "Çalma listelerin.",
+    subtitle: "Kendi listelerini oluştur, düzenle ve kesintisiz dinle.",
   },
 };
 
@@ -67,38 +79,44 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
   const [queue, setQueue] = useState<Song[]>([]);
   const [index, setIndex] = useState(0);
   const [playlistName, setPlaylistName] = useState("");
-  const [selected, setSelected] = useState("");
   const song = queue[index] ?? null;
+
   const play = (songs: Song[], nextIndex: number) => {
     setQueue(songs);
     setIndex(nextIndex);
   };
+
+  const activePlaylistObj = library.playlists.find((p) => p.id === library.activePlaylist) ?? null;
+
   const add = (track: Song) => {
-    const playlistId = selected || library.activePlaylist;
+    const playlistId = library.activePlaylist || library.playlists[0]?.id || "";
     if (!playlistId) {
-      library.setMessage("Önce bir playlist seç.");
+      library.setMessage("Önce yeni bir çalma listesi oluştur.");
       setTab("playlists");
       return;
+    }
+    if (!library.activePlaylist) {
+      library.setActivePlaylist(playlistId);
     }
     void library.addToPlaylist(playlistId, track);
   };
 
   return (
     <main className="music-app">
-      {/* PC Yüzen Cam Kenar Çubuğu (Scrollbar'sız) */}
+      {/* Sol Kenar Çubuğu */}
       <aside className="music-sidebar">
         <div className="sidebar-brand-row">
           <Link href="/" className="brand">
             <span className="brand-mark">
-              <AudioLines size={19} />
+              <AudioLines size={18} />
             </span>
             VYBE<span className="lime">.</span>
           </Link>
-          <span className="beta-tag">PRO</span>
+          <span className="beta-tag">STUDIO</span>
         </div>
 
         <nav className="side-nav" aria-label="Ana menü">
-          <span className="side-label">RADYO &amp; KEŞİF</span>
+          <span className="side-label">KEŞİF</span>
           {TABS.slice(0, 5).map((item) => (
             <button
               key={item.id}
@@ -111,7 +129,7 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
               <span className="side-text">{item.label}</span>
             </button>
           ))}
-          <span className="side-label">KÜTÜPHANEM</span>
+          <span className="side-label">KÜTÜPHANE</span>
           {TABS.slice(5).map((item) => (
             <button
               key={item.id}
@@ -135,26 +153,24 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
             <span className="side-avatar">{displayName.trim().charAt(0).toUpperCase() || "V"}</span>
             <div className="side-user-text">
               <b>{displayName}</b>
-              <small>Özel Üye</small>
+              <small>Üye</small>
             </div>
           </div>
           <SignOutButton />
         </div>
       </aside>
 
-      {/* Ana İçerik Alanı */}
+      {/* İçerik Alanı (Kendi İçinde Temiz Kaydırma) */}
       <section className="music-main">
         <header className="music-topbar">
           <div className="topbar-left">
             <Link href="/" className="mobile-brand">
               <span className="brand-mark">
-                <AudioLines size={17} />
+                <AudioLines size={16} />
               </span>
               VYBE<span className="lime">.</span>
             </Link>
-            <span className="eyebrow">
-              <Sparkles size={13} /> {COPY[tab].kicker}
-            </span>
+            <span className="eyebrow">{COPY[tab].kicker}</span>
           </div>
           <div className="topbar-right">
             <InstallAppButton compact />
@@ -184,6 +200,7 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
             onAdd={add}
           />
         )}
+
         {(tab === "daily" || tab === "match" || tab === "gems" || tab === "smart") && (
           <PersonalPanel
             key={tab}
@@ -195,74 +212,139 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
             onSaveSmart={library.saveSmart}
           />
         )}
+
         {tab === "favorites" && (
           <SongGrid
             songs={library.favorites}
             favorites={library.favorites}
-            empty="Henüz favorilediğin bir şarkı yok."
+            empty="Henüz favorilere eklenmiş bir parça yok."
             onPlay={play}
             onFavorite={library.toggleFavorite}
             onAdd={add}
           />
         )}
+
         {tab === "playlists" && (
-          <div>
-            <form
-              className="create-list"
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (playlistName.trim()) {
-                  void library.createPlaylist(playlistName.trim());
-                  setPlaylistName("");
-                }
-              }}
-            >
-              <input
-                value={playlistName}
-                onChange={(event) => setPlaylistName(event.target.value)}
-                placeholder="Yeni playlist adı..."
-                maxLength={40}
-              />
-              <button>Oluştur</button>
-            </form>
-            <div className="playlist-tools">
-              <select
-                value={selected}
-                onChange={(event) => {
-                  setSelected(event.target.value);
-                  library.setActivePlaylist(event.target.value);
+          <div className="playlists-studio">
+            {/* Üst Liste Oluşturma ve Hızlı Seçim Barı */}
+            <div className="playlists-header-bar">
+              <form
+                className="playlist-create-bar"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  if (playlistName.trim()) {
+                    void library.createPlaylist(playlistName.trim());
+                    setPlaylistName("");
+                  }
                 }}
               >
-                <option value="">Liste seç</option>
-                {library.playlists.map((list) => (
-                  <option key={list.id} value={list.id}>
-                    {list.name}
-                  </option>
-                ))}
-              </select>
-              {library.activePlaylist && (
-                <button
-                  className="text-action"
-                  onClick={() => void library.deletePlaylist(library.activePlaylist)}
-                >
-                  Listeyi sil
+                <FolderPlus size={17} />
+                <input
+                  value={playlistName}
+                  onChange={(event) => setPlaylistName(event.target.value)}
+                  placeholder="Yeni liste adı yaz (örn. Gece Sürüşü)..."
+                  maxLength={40}
+                />
+                <button type="submit" disabled={!playlistName.trim()}>
+                  Oluştur
                 </button>
-              )}
+              </form>
             </div>
-            <SongGrid
-              songs={library.playlistSongs}
-              favorites={library.favorites}
-              empty="Bir liste seç veya yeni oluştur."
-              onPlay={play}
-              onFavorite={library.toggleFavorite}
-              onAdd={add}
-              onRemove={library.removeFromPlaylist}
-            />
+
+            {/* Modern Liste Kartları / Sekmeleri (2000'lerden kalma <select> kaldırıldı) */}
+            {library.playlists.length > 0 ? (
+              <div className="playlist-cards-row">
+                {library.playlists.map((list) => {
+                  const isSelected = library.activePlaylist === list.id;
+                  return (
+                    <div
+                      key={list.id}
+                      className={isSelected ? "playlist-pill-card active" : "playlist-pill-card"}
+                      onClick={() => library.setActivePlaylist(list.id)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") library.setActivePlaylist(list.id);
+                      }}
+                    >
+                      <div className="playlist-pill-icon">
+                        <ListMusic size={16} />
+                      </div>
+                      <div className="playlist-pill-info">
+                        <strong>{list.name}</strong>
+                        <small>{isSelected ? "Seçili koleksiyon" : "Açmak için dokun"}</small>
+                      </div>
+                      {isSelected && (
+                        <button
+                          type="button"
+                          className="playlist-pill-delete"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void library.deletePlaylist(list.id);
+                          }}
+                          title="Listeyi sil"
+                          aria-label="Listeyi sil"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="empty-state">
+                Henüz bir çalma listen yok. Yukarıdan bir isim yazıp ilk listeni oluştur.
+              </div>
+            )}
+
+            {/* Seçili Listenin Başlığı ve İçeriği */}
+            {activePlaylistObj && (
+              <div className="active-playlist-section">
+                <div className="active-playlist-banner">
+                  <div>
+                    <span className="eyebrow">AKTİF KOLEKSİYON</span>
+                    <h2>{activePlaylistObj.name}</h2>
+                    <small>{library.playlistSongs.length} parça</small>
+                  </div>
+                  <div className="active-playlist-actions">
+                    {library.playlistSongs.length > 0 && (
+                      <button
+                        type="button"
+                        className="action-btn next-btn"
+                        onClick={() => play(library.playlistSongs, 0)}
+                      >
+                        <Play size={15} fill="currentColor" />
+                        <span>Tümünü Oynat</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="action-btn"
+                      onClick={() => void library.deletePlaylist(activePlaylistObj.id)}
+                    >
+                      <Trash2 size={15} />
+                      <span>Listeyi Sil</span>
+                    </button>
+                  </div>
+                </div>
+
+                <SongGrid
+                  songs={library.playlistSongs}
+                  favorites={library.favorites}
+                  empty="Bu listede henüz parça yok. Radyoda veya aramada beğendiğin şarkılarda 'Listeye Ekle' butonuna bas."
+                  onPlay={play}
+                  onFavorite={library.toggleFavorite}
+                  onAdd={add}
+                  onRemove={library.removeFromPlaylist}
+                />
+              </div>
+            )}
           </div>
         )}
       </section>
 
-      {/* Telefon İçin Sabit Alt Uygulama Navigasyonu (Native App Bottom Tab Bar) */}
+      {/* Telefon ve Tablet İçin Alt Navigasyon Barı */}
       <nav className="mobile-bottom-nav" aria-label="Mobil alt menü">
         {TABS.map((item) => (
           <button

@@ -18,8 +18,10 @@ export function useLibrary(userId: string) {
       supabase.from("playlists").select("id,name,created_at").eq("user_id", userId).order("created_at", { ascending: false }),
     ]);
     const songs = (favResult.data ?? []).map((row) => row.song as Song);
+    const loadedLists = (listResult.data ?? []) as Playlist[];
     setFavorites(songs);
-    setPlaylists((listResult.data ?? []) as Playlist[]);
+    setPlaylists(loadedLists);
+    setActivePlaylist((prev) => prev || loadedLists[0]?.id || "");
     if (songs.length) {
       await supabase.from("seen_tracks").upsert(
         songs.map((song) => ({ user_id: userId, track_id: song.trackId, song, source: "favorite" })),

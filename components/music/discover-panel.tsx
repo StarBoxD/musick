@@ -1,7 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, Music2, Search, Shuffle, Sparkles } from "lucide-react";
+import {
+  CloudRain,
+  Disc3,
+  Flame,
+  Headphones,
+  Heart,
+  ListPlus,
+  Moon,
+  Radio,
+  Search,
+  Shuffle,
+  Sun,
+  Zap,
+} from "lucide-react";
 import { postMusic, searchMusic } from "@/lib/music/audius";
 import { MOODS } from "@/lib/music/moods";
 import type { Mood, Song } from "@/types/music";
@@ -13,37 +26,40 @@ type Props = {
   onAdd: (song: Song) => void;
 };
 
-const MOOD_META: Record<Mood, { label: string; desc: string; emoji: string }> = {
-  Happy: { label: "Happy", desc: "Hareketli Türkçe Pop", emoji: "☀️" },
-  Sad: { label: "Sad", desc: "Duygusal & Akustik", emoji: "🌧️" },
-  Chill: { label: "Chill", desc: "Alternatif & Sakin", emoji: "🌙" },
-  Energetic: { label: "Energetic", desc: "Türkçe Rap & Yüksek Tempo", emoji: "⚡" },
-  Romantic: { label: "Romantic", desc: "Aşk & Slow Hit", emoji: "💜" },
-  Focus: { label: "Focus", desc: "Enstrümantal & Odak", emoji: "🎧" },
-  Nostalgic: { label: "Nostalgic", desc: "90'lar & Anadolu Rock", emoji: "📼" },
-  Dark: { label: "Dark", desc: "Türkçe Rock & Kült", emoji: "🔥" },
+const MOOD_META: Record<
+  Mood,
+  { label: string; desc: string; tag: string; icon: typeof Sun }
+> = {
+  Happy: { label: "Upbeat", desc: "Hareketli Türkçe Pop", tag: "POP", icon: Sun },
+  Sad: { label: "Melancholy", desc: "Duygusal & Akustik", tag: "SLOW", icon: CloudRain },
+  Chill: { label: "Chill", desc: "Alternatif & Sakin", tag: "INDIE", icon: Moon },
+  Energetic: { label: "High Tempo", desc: "Türkçe Rap & Hip-Hop", tag: "RAP", icon: Zap },
+  Romantic: { label: "Late Night", desc: "Slow & Aşk Şarkıları", tag: "SOUL", icon: Heart },
+  Focus: { label: "Deep Focus", desc: "Enstrümantal & Akustik", tag: "INSTRUMENTAL", icon: Headphones },
+  Nostalgic: { label: "Classics", desc: "90'lar & Anadolu Rock", tag: "RETRO", icon: Disc3 },
+  Dark: { label: "Alt Rock", desc: "Türkçe Rock & Kült", tag: "ROCK", icon: Flame },
 };
 
-export default function DiscoverPanel({ favorites, onPlay, onFavorite }: Props) {
+export default function DiscoverPanel({ favorites, onPlay, onFavorite, onAdd }: Props) {
   const [mood, setMood] = useState<Mood | null>(null);
   const [query, setQuery] = useState("");
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("Bir ruh hâli seç; liste kalabalığı olmadan müziğin anında başlasın.");
+  const [message, setMessage] = useState("");
 
   const discover = async (nextMood: Mood) => {
     setMood(nextMood);
     setLoading(true);
-    setMessage(`${MOOD_META[nextMood].label} frekansından rastgele parça çekiliyor...`);
+    setMessage(`${MOOD_META[nextMood].desc} kanalından parça seçiliyor...`);
     try {
       const data = await postMusic("/api/music/discover", { mood: nextMood });
       const picked = (data.songs ?? [])[0] as Song | undefined;
       if (picked) {
         setCurrentSong(picked);
         onPlay([picked], 0);
-        setMessage(`${MOOD_META[nextMood].emoji} ${MOOD_META[nextMood].desc} · Canlı Yayında`);
+        setMessage("");
       } else {
-        setMessage("Bu modda çalacak şarkı bulunamadı, başka bir mod dene.");
+        setMessage("Bu kanalda uygun parça bulunamadı, farklı bir frekans dene.");
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Parça başlatılamadı.");
@@ -60,14 +76,14 @@ export default function DiscoverPanel({ favorites, onPlay, onFavorite }: Props) 
   const search = async () => {
     if (!query.trim()) return;
     setLoading(true);
-    setMessage("Sanatçı veya parça aranıyor...");
+    setMessage("Aranıyor...");
     try {
       const data = await searchMusic(query);
       const picked = (data.songs ?? [])[0] as Song | undefined;
       if (picked) {
         setCurrentSong(picked);
         onPlay(data.songs ?? [picked], 0);
-        setMessage(`🔍 Arama radyosu: ${picked.artist}`);
+        setMessage("");
       } else {
         setMessage("Aramaya uygun parça bulunamadı.");
       }
@@ -78,11 +94,13 @@ export default function DiscoverPanel({ favorites, onPlay, onFavorite }: Props) 
     }
   };
 
-  const isFav = currentSong ? favorites.some((f) => f.trackId === currentSong.trackId) : false;
+  const isFav = currentSong
+    ? favorites.some((f) => f.trackId === currentSong.trackId)
+    : false;
 
   return (
     <div className="radio-container">
-      {/* Üst Arama & Hızlı Rastgele Çal Barı */}
+      {/* Üst Arama & Rastgele Kanal Başlatıcı */}
       <div className="discover-top-controls">
         <form
           className="music-search"
@@ -91,13 +109,13 @@ export default function DiscoverPanel({ favorites, onPlay, onFavorite }: Props) 
             void search();
           }}
         >
-          <Search size={18} />
+          <Search size={17} />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Sanatçı veya şarkı yaz, anında çalsın (Duman, Sezen Aksu, Ezhel...)"
+            placeholder="Sanatçı veya parça ara (Duman, Sezen Aksu, Mor ve Ötesi, Ezhel...)"
           />
-          <button disabled={loading}>{loading ? "..." : "Çal"}</button>
+          <button disabled={loading}>{loading ? "Bekle" : "Oynat"}</button>
         </form>
         <button
           type="button"
@@ -105,28 +123,34 @@ export default function DiscoverPanel({ favorites, onPlay, onFavorite }: Props) 
           onClick={playRandomNext}
           disabled={loading}
         >
-          <Shuffle size={16} />
-          <span>Şansımı Dene</span>
+          <Shuffle size={15} />
+          <span>Rastgele Frekans</span>
         </button>
       </div>
 
-      {/* Renkli Mood Kartları */}
+      {/* Frekans / Mood Kartları */}
       <div className="mood-grid">
         {MOODS.map((item) => {
           const meta = MOOD_META[item];
+          const Icon = meta.icon;
+          const isActive = mood === item;
           return (
             <button
               key={item}
-              className={`mood-card mood-${item.toLowerCase()} ${mood === item ? "active" : ""}`}
+              className={`mood-card mood-${item.toLowerCase()} ${isActive ? "active" : ""}`}
               onClick={() => void discover(item)}
               disabled={loading}
             >
               <div className="mood-card-top">
-                <span className="mood-emoji">{meta.emoji}</span>
-                {mood === item && <span className="mood-playing-dot" />}
+                <span className="mood-icon-box">
+                  <Icon size={16} />
+                </span>
+                <span className="mood-tag-code">{meta.tag}</span>
               </div>
-              <b>{meta.label}</b>
-              <small>{meta.desc}</small>
+              <div className="mood-card-Bottom">
+                <b>{meta.label}</b>
+                <small>{meta.desc}</small>
+              </div>
             </button>
           );
         })}
@@ -134,7 +158,7 @@ export default function DiscoverPanel({ favorites, onPlay, onFavorite }: Props) 
 
       {message && (
         <div className="music-message-pill">
-          <Sparkles size={13} />
+          <Radio size={13} />
           <span>{message}</span>
         </div>
       )}
@@ -152,10 +176,14 @@ export default function DiscoverPanel({ favorites, onPlay, onFavorite }: Props) 
           />
           <div className="now-playing-cover-wrap">
             {currentSong.artwork ? (
-              <img src={currentSong.artwork} alt={currentSong.title} className="now-playing-img" />
+              <img
+                src={currentSong.artwork}
+                alt={currentSong.title}
+                className="now-playing-img"
+              />
             ) : (
               <div className="now-playing-fallback">
-                <Music2 size={54} />
+                <Disc3 size={48} />
               </div>
             )}
             <div className="equalizer-bars" aria-hidden="true">
@@ -169,14 +197,14 @@ export default function DiscoverPanel({ favorites, onPlay, onFavorite }: Props) 
           <div className="now-playing-details">
             <div className="live-badge-row">
               <span className="live-badge">
-                <span className="live-dot" /> CANLI RADYO
+                <span className="live-dot" /> ON AIR
               </span>
               {mood && <span className="mood-tag">{MOOD_META[mood].desc}</span>}
             </div>
             <h2>{currentSong.title}</h2>
             <h3>{currentSong.artist}</h3>
             <p className="listen-rule-hint">
-              15 saniye dinlediğinde bu parça hafızaya alınır ve bir daha tekrar karşına çıkmaz.
+              15 saniye dinlenen parçalar otomatik arşivlenir ve tekrar önerilmez.
             </p>
             <div className="now-playing-actions">
               <button
@@ -184,8 +212,16 @@ export default function DiscoverPanel({ favorites, onPlay, onFavorite }: Props) 
                 className={`action-btn ${isFav ? "fav-active" : ""}`}
                 onClick={() => onFavorite(currentSong)}
               >
-                <Heart size={16} fill={isFav ? "currentColor" : "none"} />
-                <span>{isFav ? "Favorilerde" : "Favorile"}</span>
+                <Heart size={15} fill={isFav ? "currentColor" : "none"} />
+                <span>{isFav ? "Favorilerde" : "Favorilere Ekle"}</span>
+              </button>
+              <button
+                type="button"
+                className="action-btn"
+                onClick={() => onAdd(currentSong)}
+              >
+                <ListPlus size={16} />
+                <span>Listeye Ekle</span>
               </button>
               <button
                 type="button"
@@ -193,8 +229,8 @@ export default function DiscoverPanel({ favorites, onPlay, onFavorite }: Props) 
                 onClick={playRandomNext}
                 disabled={loading}
               >
-                <Shuffle size={16} />
-                <span>{loading ? "Seçiliyor..." : "Sıradaki Rastgele Parça"}</span>
+                <Shuffle size={15} />
+                <span>{loading ? "Geçiliyor..." : "Sıradaki Parça"}</span>
               </button>
             </div>
           </div>
@@ -202,11 +238,11 @@ export default function DiscoverPanel({ favorites, onPlay, onFavorite }: Props) 
       ) : (
         <div className="radio-placeholder">
           <div className="pulse-disc">
-            <Music2 size={34} />
+            <Radio size={28} />
           </div>
-          <h3>Frekansını Seç, Radyon Başlasın</h3>
+          <h3>Bir Frekans Seç</h3>
           <p>
-            Yukarıdaki 8 ruh hâlinden birine dokun veya <b>Şansımı Dene</b> butonuna bas; Türkçe şarkılar ekranda liste kalabalığı yapmadan anında çalmaya başlasın.
+            Yukarıdaki 8 kanaldan birini seç veya <b>Rastgele Frekans</b> butonuna dokun; yayın anında başlasın.
           </p>
         </div>
       )}
