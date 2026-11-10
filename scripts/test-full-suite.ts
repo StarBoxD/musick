@@ -259,12 +259,21 @@ async function runAllTests() {
     migrationMasterHardening.includes("drop policy if exists \"Users manage own favorites\"") &&
     migrationMasterHardening.includes("drop policy if exists \"Users manage own playlists\"") &&
     migrationMasterHardening.includes("drop policy if exists \"Users manage tracks in own playlists\"") &&
-    migrationMasterHardening.includes("Allowed users manage own profile") &&
-    migrationMasterHardening.includes("Allowed users manage own favorites") &&
-    migrationMasterHardening.includes("Allowed users manage own playlists") &&
-    migrationMasterHardening.includes("Allowed users manage tracks in own playlists") &&
-    migrationMasterHardening.includes("Allowed users manage own seen tracks") &&
-    migrationMasterHardening.includes("Allowed users manage own daily vybe");
+    migrationMasterHardening.includes("Allowed users select own profile") &&
+    migrationMasterHardening.includes("Allowed users select own favorites") &&
+    migrationMasterHardening.includes("Allowed users select own playlists") &&
+    migrationMasterHardening.includes("Allowed users select tracks in own playlists") &&
+    migrationMasterHardening.includes("Allowed users select own seen tracks") &&
+    migrationMasterHardening.includes("Allowed users select own daily vybe");
+
+  const hasSecurityDefinerHardening =
+    migrationMasterHardening.includes("handle_new_user()") &&
+    migrationMasterHardening.includes("enforce_vybe_five_active_users()") &&
+    migrationMasterHardening.includes("reject_unlisted_signup()") &&
+    migrationMasterHardening.includes("set search_path = ''") &&
+    migrationMasterHardening.includes("revoke execute on function public.handle_new_user() from public, anon") &&
+    migrationMasterHardening.includes("revoke execute on function public.enforce_vybe_five_active_users() from public, anon") &&
+    migrationMasterHardening.includes("revoke execute on function public.reject_unlisted_signup() from public, anon");
 
   check(
     "5. Supabase RLS Güçlendirmesi",
@@ -282,10 +291,26 @@ async function runAllTests() {
 
   check(
     "5. Supabase RLS Güçlendirmesi",
-    "Tüm 7 tabloda eski permissive politikaları kaldıran genel RLS sertleştirme migration'ı mevcuttur",
+    "Tüm 7 tabloda eski permissive politikaları kaldıran granüler RLS sertleştirmesi mevcuttur",
     hasMasterHardeningAllTables,
-    "20261110_allowlist_rls_hardening.sql (7 tablo allowlist drop/create doğrulaması tamamlandı)"
+    "20261110_allowlist_rls_hardening.sql (7 tablo SELECT/INSERT/UPDATE/DELETE ayrımı ve allowlist doğrulandı)"
   );
+
+  check(
+    "5. Supabase RLS Güçlendirmesi",
+    "SECURITY DEFINER fonksiyonları için search_path = '' ve PUBLIC/anon yetki iptali mevcuttur",
+    hasSecurityDefinerHardening,
+    "handle_new_user, enforce_vybe_five_active_users, reject_unlisted_signup koruması doğrulandı"
+  );
+
+  // -------------------------------------------------------------
+  // BÖLÜM 6: 5 Kullanıcı Senaryosu RLS Matrisi
+  // -------------------------------------------------------------
+  const { runRlsMatrixTests } = await import("./test-rls-matrix");
+  const matrixResult = runRlsMatrixTests();
+  matrixResult.results.forEach((r) => {
+    check("6. RLS Kullanıcı Senaryoları", r.scenario, r.passed, r.message);
+  });
 
   // -------------------------------------------------------------
   // SONUÇLARI YAZDIR
