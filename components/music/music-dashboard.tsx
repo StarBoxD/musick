@@ -16,10 +16,7 @@ import {
 } from "@/components/music/dashboard/dashboard-types";
 import { useViewportBottomSync } from "@/components/music/dashboard/use-viewport-bottom-sync";
 import { usePlaybackQueue } from "@/components/music/dashboard/use-playback-queue";
-import {
-  useDashboardController,
-  useToastNotification,
-} from "@/components/music/dashboard/use-dashboard-controller";
+import { useDashboardController, useToastNotification } from "@/components/music/dashboard/use-dashboard-controller";
 import MusicSidebar from "@/components/music/dashboard/music-sidebar";
 import MusicTopbar from "@/components/music/dashboard/music-topbar";
 import HomeView from "@/components/music/dashboard/home-view";
@@ -187,6 +184,7 @@ export default function MusicDashboard({
 
       <MiniPlayer
         song={song}
+        favoriteSource={library}
         hasPrev={index > 0}
         hasNext={index < queue.length - 1}
         onClose={() => setQueue([])}

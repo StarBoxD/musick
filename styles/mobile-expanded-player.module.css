@@ -71,6 +71,13 @@
     font-size: 14px;
   }
 
+  .mini-player.is-expanded > .player-fav-btn {
+    order: 2;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+  }
+
   .mini-player.is-expanded .player-seek {
     order: 3;
     width: 100%;

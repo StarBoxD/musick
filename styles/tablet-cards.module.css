@@ -32,8 +32,9 @@
     flex: 1;
   }
 
+  /* iPadOS ignores HTMLMediaElement.volume; hardware buttons control loudness. */
   .mini-player .player-volume {
-    min-width: 90px;
+    display: none;
   }
 
   .song-grid {

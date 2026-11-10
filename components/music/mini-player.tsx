@@ -2,19 +2,27 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Song } from "@/types/music";
-import { isValidStreamUrl } from "@/lib/music/license-filter";
 import { usePlayerTransport } from "@/components/music/player/use-player-transport";
+import { useTrackLoader } from "@/components/music/player/use-track-loader";
 import PlayerAudio from "@/components/music/player/player-audio";
 import {
   PlayerActionButtons,
   PlayerExpandedHeader,
+  PlayerFavoriteButton,
   PlayerTrackInfo,
   PlayerTransport,
 } from "@/components/music/player/player-controls";
 import { PlayerSeek, PlayerVolume } from "@/components/music/player/player-sliders";
 
+type FavoriteSource = {
+  favorites: Song[];
+  pendingFavorites: Set<string>;
+  toggleFavorite: (song: Song) => void | Promise<void>;
+};
+
 type Props = {
   song: Song | null;
+  favoriteSource?: FavoriteSource;
   onClose: () => void;
   onPrev: () => void;
   onNext: () => void;
@@ -25,6 +33,7 @@ type Props = {
 
 export default function MiniPlayer({
   song,
+  favoriteSource,
   onClose,
   onPrev,
   onNext,
@@ -36,7 +45,6 @@ export default function MiniPlayer({
   const listenedRef = useRef(false);
   const consecutiveErrorsRef = useRef(0);
   const autoSkipTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const currentTrackIdRef = useRef<string | null>(null);
 
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -57,63 +65,21 @@ export default function MiniPlayer({
     }
   }, [volume]);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (autoSkipTimerRef.current) {
-      clearTimeout(autoSkipTimerRef.current);
-      autoSkipTimerRef.current = null;
-    }
-    if (!song) {
-      currentTrackIdRef.current = null;
-      if (audio) {
-        audio.pause();
-        audio.src = "";
-      }
-      setPlaying(false);
-      setTime(0);
-      setDuration(0);
-      setIsReady(false);
-      setError(null);
-      setExpanded(false);
-      return;
-    }
-    if (currentTrackIdRef.current === song.trackId && audio && audio.src) {
-      return;
-    }
-    currentTrackIdRef.current = song.trackId;
-    listenedRef.current = false;
-    setPlaying(false);
-    setTime(0);
-    setDuration(0);
-    setIsReady(false);
-    setError(null);
-    if (!audio) return;
-    if (!song.streamUrl || !isValidStreamUrl(song.streamUrl)) {
-      setError("Geçerli bir akış adresi doğrulanamadı.");
-      return;
-    }
-    setLoading(true);
-    audio.src = song.streamUrl;
-    audio.volume = volumeRef.current;
-    audio.load();
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          setPlaying(true);
-          setLoading(false);
-          consecutiveErrorsRef.current = 0;
-        })
-        .catch((err: Error) => {
-          setLoading(false);
-          setError(
-            err.name === "NotAllowedError"
-              ? "Otomatik oynatma engellendi. Başlatmak için 'Oynat'a basın."
-              : "Oynatma başlatılamadı. Tekrar deneyin."
-          );
-        });
-    }
-  }, [song]);
+  useTrackLoader({
+    song,
+    audioRef,
+    volumeRef,
+    listenedRef,
+    consecutiveErrorsRef,
+    autoSkipTimerRef,
+    setPlaying,
+    setLoading,
+    setTime,
+    setDuration,
+    setIsReady,
+    setError,
+    setExpanded,
+  });
 
   const { handlePrevClick, handleNextClick, togglePlay } = usePlayerTransport({
     song,
@@ -189,6 +155,13 @@ export default function MiniPlayer({
         setIsSeeking={setIsSeeking}
       />
       <PlayerVolume volume={volume} setVolume={setVolume} audioRef={audioRef} />
+      {favoriteSource && (
+        <PlayerFavoriteButton
+          active={favoriteSource.favorites.some((item) => item.trackId === song.trackId)}
+          pending={favoriteSource.pendingFavorites.has(song.trackId)}
+          onToggle={() => void favoriteSource.toggleFavorite(song)}
+        />
+      )}
       <PlayerActionButtons expanded={expanded} onExpand={() => setExpanded(true)} onClose={onClose} />
     </aside>
   );

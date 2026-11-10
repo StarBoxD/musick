@@ -60,9 +60,9 @@ export function runP1RegressionChecks(): TestReport[] {
     miniPlayerSource.includes("useEffect(() => {") &&
     miniPlayerSource.includes("audioRef.current.volume = volume") &&
     miniPlayerSource.includes("}, [volume]);");
+  const songEffectDeps = miniPlayerSource.match(/\}, \[\s*song\b[\s\S]*?\]\);/g) ?? [];
   const songLoadingEffectDoesNotDependOnVolume =
-    !miniPlayerSource.includes("}, [song, volume]);") &&
-    miniPlayerSource.includes("}, [song]);");
+    songEffectDeps.length > 0 && songEffectDeps.every((deps) => !/\bvolume\b/.test(deps));
   const hasTrackIdGuard = miniPlayerSource.includes("currentTrackIdRef.current === song.trackId");
 
   check(

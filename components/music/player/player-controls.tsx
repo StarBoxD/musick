@@ -3,6 +3,7 @@
 import {
   ChevronDown,
   Disc3,
+  Heart,
   Loader2,
   Maximize2,
   Pause,
@@ -122,6 +123,28 @@ export function PlayerTransport({
         <SkipForward size={16} />
       </button>
     </div>
+  );
+}
+
+type FavoriteButtonProps = {
+  active: boolean;
+  pending: boolean;
+  onToggle: () => void;
+};
+
+export function PlayerFavoriteButton({ active, pending, onToggle }: FavoriteButtonProps) {
+  return (
+    <button
+      type="button"
+      className={`icon-action player-fav-btn ${active ? "is-active" : ""}`}
+      onClick={onToggle}
+      disabled={pending}
+      aria-pressed={active}
+      aria-label={active ? "Favorilerden çıkar" : "Favorilere ekle"}
+      title={active ? "Favorilerden çıkar" : "Favorilere ekle"}
+    >
+      {pending ? <Loader2 size={16} className="spin-fast" /> : <Heart size={17} fill={active ? "currentColor" : "none"} />}
+    </button>
   );
 }
 

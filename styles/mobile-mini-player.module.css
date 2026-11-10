@@ -72,6 +72,17 @@
     min-width: 100%;
   }
 
+  /* Heart shares the seek row so the track title keeps its width. */
+  .mini-player:has(> .player-fav-btn):not(.is-expanded) > .player-seek {
+    flex-basis: calc(100% - 56px);
+    min-width: 0;
+  }
+
+  .mini-player:not(.is-expanded) > .player-fav-btn {
+    order: 11;
+    align-self: flex-end;
+  }
+
   .player-seek input[type="range"] {
     height: 28px;
     cursor: pointer;
