@@ -1535,7 +1535,437 @@ a {
 
 .active-playlist-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
+}
+
+/* ----- Koleksiyon İçi Şarkı Seç & Ekle Stüdyo Paneli (Album Adder) ----- */
+.album-adder-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(210, 255, 90, 0.24);
+  background: linear-gradient(150deg, #181924 0%, #111118 100%);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.42);
+}
+
+.album-adder-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.album-adder-header h3 {
+  margin: 4px 0 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--vybe-text);
+}
+
+.album-adder-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 6px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--vybe-border);
+  background: #0d0e15;
+  color: var(--vybe-muted);
+}
+
+.album-adder-search:focus-within {
+  border-color: rgba(210, 255, 90, 0.45);
+}
+
+.album-adder-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--vybe-text);
+  font: 500 13.5px Manrope, sans-serif;
+}
+
+.album-adder-search button {
+  min-height: 36px;
+  padding: 0 16px;
+  border-radius: 9px;
+  border: 0;
+  background: var(--vybe-accent);
+  color: #09090d;
+  font: 700 12.5px Manrope, sans-serif;
+  cursor: pointer;
+}
+
+.album-adder-search button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.album-adder-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.album-adder-tab {
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--vybe-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--vybe-muted);
+  font: 700 12px Manrope, sans-serif;
+  cursor: pointer;
+  transition: 0.16s ease;
+}
+
+.album-adder-tab.active {
+  border-color: rgba(210, 255, 90, 0.48);
+  background: rgba(210, 255, 90, 0.14);
+  color: var(--vybe-accent);
+}
+
+.album-adder-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.album-adder-empty {
+  grid-column: 1 / -1;
+  padding: 18px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--vybe-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.album-adder-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.03);
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+
+.album-adder-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(210, 255, 90, 0.28);
+}
+
+.album-adder-song {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.album-adder-song img,
+.album-adder-fallback {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 9px;
+  object-fit: cover;
+  background: #161722;
+  display: grid;
+  place-items: center;
+  color: var(--vybe-accent);
+}
+
+.album-adder-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.album-adder-meta strong {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--vybe-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.album-adder-meta span {
+  font-size: 12px;
+  color: var(--vybe-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.album-adder-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 9px;
+  border: 1px solid rgba(210, 255, 90, 0.35);
+  background: rgba(210, 255, 90, 0.12);
+  color: var(--vybe-accent);
+  font: 700 12px Manrope, sans-serif;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: 0.16s ease;
+}
+
+.album-adder-btn:hover {
+  background: var(--vybe-accent);
+  color: #09090d;
+}
+
+.album-adder-btn.is-added {
+  background: var(--vybe-accent);
+  color: #09090d;
+  border-color: var(--vybe-accent);
+}
+
+/* ----- İstediğin Albüme / Koleksiyona Şarkı Koyma Seçici Modal ----- */
+.playlist-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 75;
+  background: rgba(5, 5, 10, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.playlist-picker-modal {
+  width: min(460px, 100%);
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(155deg, #181924 0%, #101118 100%);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.75);
+  color: var(--vybe-text);
+  overflow: hidden;
+}
+
+.playlist-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.playlist-picker-header h3 {
+  margin: 4px 0 0;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.playlist-picker-song {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.playlist-picker-song img,
+.playlist-picker-fallback {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #161722;
+  display: grid;
+  place-items: center;
+  color: var(--vybe-accent);
+}
+
+.playlist-picker-song-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.playlist-picker-song-meta strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--vybe-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlist-picker-song-meta span {
+  font-size: 12.5px;
+  color: var(--vybe-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlist-picker-create {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--vybe-border);
+  background: #0d0e15;
+  color: var(--vybe-muted);
+}
+
+.playlist-picker-create:focus-within {
+  border-color: rgba(210, 255, 90, 0.45);
+}
+
+.playlist-picker-create input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--vybe-text);
+  font: 500 13px Manrope, sans-serif;
+}
+
+.playlist-picker-create button {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 0;
+  background: var(--vybe-accent);
+  color: #09090d;
+  font: 700 12px Manrope, sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.playlist-picker-create button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.playlist-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 280px;
+  padding-right: 2px;
+}
+
+.playlist-picker-empty {
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--vybe-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.playlist-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--vybe-text);
+  text-align: left;
+  cursor: pointer;
+  transition: 0.16s ease;
+}
+
+.playlist-picker-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(210, 255, 90, 0.35);
+}
+
+.playlist-picker-item.is-added {
+  border-color: rgba(210, 255, 90, 0.48);
+  background: rgba(210, 255, 90, 0.1);
+}
+
+.playlist-picker-item-icon {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--vybe-text);
+}
+
+.playlist-picker-item.is-added .playlist-picker-item-icon {
+  background: var(--vybe-accent);
+  color: #09090d;
+}
+
+.playlist-picker-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.playlist-picker-item-info strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--vybe-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlist-picker-item-info small {
+  font-size: 11.5px;
+  color: var(--vybe-muted);
+}
+
+.playlist-picker-item-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--vybe-text);
+  font: 700 11.5px Manrope, sans-serif;
+  flex-shrink: 0;
+}
+
+.playlist-picker-item.is-added .playlist-picker-item-badge {
+  background: var(--vybe-accent);
+  color: #09090d;
 }
 
 /* ----- Parça Izgarası (SongGrid & Premium SongCard) ----- */
@@ -2342,7 +2772,10 @@ a {
   html, body {
     overflow-x: hidden;
     width: 100%;
+    height: 100%;
+    overscroll-behavior-y: none;
     -webkit-text-size-adjust: 100%;
+    background: var(--bg);
   }
 
   /* iOS Safari 16px font-size kuralı: Input açıldığında otomatik yakınlaştırmayı engeller */
@@ -2353,15 +2786,19 @@ a {
   .music-search input,
   .playlist-create-bar input,
   .playlist-rename-input,
+  .playlist-picker-create input,
+  .album-adder-search input,
   .magic-email-field input {
     font-size: 16px !important;
   }
 
   .music-app {
+    position: fixed;
+    inset: 0;
     grid-template-columns: 1fr;
-    height: 100vh;
+    height: 100%;
     height: 100dvh;
-    overflow-x: hidden;
+    overflow: hidden;
     width: 100%;
   }
 
@@ -2370,10 +2807,12 @@ a {
   }
 
   .music-main {
-    height: 100vh;
+    height: 100%;
     height: 100dvh;
-    padding: 0 16px calc(196px + env(safe-area-inset-bottom, 0px));
+    padding: 0 16px calc(210px + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
     overflow-x: hidden;
+    overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -2889,15 +3328,50 @@ a {
     justify-content: center;
   }
 
+  .album-adder-panel {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .album-adder-list {
+    grid-template-columns: 1fr;
+    max-height: 290px;
+  }
+
+  .album-adder-btn {
+    min-height: 44px;
+  }
+
+  .playlist-picker-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .playlist-picker-modal {
+    width: 100%;
+    max-height: 85vh;
+    border-radius: 22px 22px 0 0;
+    border-bottom: 0;
+    padding: 18px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .playlist-picker-item {
+    min-height: 54px;
+  }
+
   .mini-player {
     left: 10px;
     right: 10px;
-    bottom: calc(66px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(66px + env(safe-area-inset-bottom, 0px) - var(--vv-bottom-fix, 0px));
     padding: 10px 12px;
     min-height: 66px;
     border-radius: 14px;
     gap: 8px;
     flex-wrap: wrap;
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   .mini-player > img,
@@ -2959,17 +3433,33 @@ a {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: calc(0px - var(--vv-bottom-fix, 0px));
     z-index: 30;
     height: calc(60px + env(safe-area-inset-bottom, 0px));
     padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
-    background: rgba(11, 11, 16, 0.96);
+    background: rgba(11, 11, 16, 0.98);
     backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid var(--line);
     display: flex;
     align-items: center;
     justify-content: space-around;
-    overflow-x: hidden;
+    overflow: visible;
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .mobile-bottom-nav::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 64px;
+    background: rgba(11, 11, 16, 0.98);
+    pointer-events: none;
   }
 
   .mobile-tab {

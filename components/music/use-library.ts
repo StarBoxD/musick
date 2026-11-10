@@ -10,6 +10,7 @@ export function useLibrary(userId: string) {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [activePlaylist, setActivePlaylist] = useState("");
   const [playlistSongs, setPlaylistSongs] = useState<Song[]>([]);
+  const [playlistTrackMap, setPlaylistTrackMap] = useState<Record<string, string[]>>({});
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [pendingFavorites, setPendingFavorites] = useState<Set<string>>(new Set());
@@ -75,7 +76,12 @@ export function useLibrary(userId: string) {
           setMessage(`Liste parçaları okunamadı: ${error.message}`);
           return;
         }
-        setPlaylistSongs((data ?? []).map((row) => row.song as Song));
+        const loadedSongs = (data ?? []).map((row) => row.song as Song);
+        setPlaylistSongs(loadedSongs);
+        setPlaylistTrackMap((prev) => ({
+          ...prev,
+          [activePlaylist]: loadedSongs.map((s) => s.trackId),
+        }));
       });
 
     return () => {
@@ -225,16 +231,16 @@ export function useLibrary(userId: string) {
   };
 
   // PLAYLIST'E ŞARKI EKLEME (AŞAMA 4) - Çift ekleme engelli
-  const addToPlaylist = async (playlistId: string, song: Song) => {
+  const addToPlaylist = async (playlistId: string, song: Song): Promise<boolean> => {
     if (!playlistId || !song.trackId) {
       setMessage("Lütfen önce bir çalma listesi seçin.");
-      return;
+      return false;
     }
 
     // Eğer aktif liste ise ve şarkı zaten varsa ekleme
     if (playlistId === activePlaylist && playlistSongs.some((s) => s.trackId === song.trackId)) {
       setMessage("Bu parça seçili listede zaten mevcut.");
-      return;
+      return true;
     }
 
     try {
@@ -245,27 +251,35 @@ export function useLibrary(userId: string) {
 
       if (error) {
         setMessage(`Şarkı listeye eklenemedi: ${error.message}`);
-        return;
+        return false;
       }
 
       setMessage(`"${song.title}" listeye eklendi.`);
+      setPlaylistTrackMap((prev) => {
+        const current = prev[playlistId] ?? [];
+        if (current.includes(song.trackId)) return prev;
+        return { ...prev, [playlistId]: [...current, song.trackId] };
+      });
       if (playlistId === activePlaylist) {
         setPlaylistSongs((items) => [...items.filter((item) => item.trackId !== song.trackId), song]);
       }
+      return true;
     } catch (err: unknown) {
       setMessage(`Ekleme hatası: ${err instanceof Error ? err.message : String(err)}`);
+      return false;
     }
   };
 
   // PLAYLIST'TEN ŞARKI ÇIKARMA (AŞAMA 4)
-  const removeFromPlaylist = async (song: Song) => {
-    if (!activePlaylist || !song.trackId) return;
+  const removeFromPlaylist = async (song: Song, targetPlaylistId?: string) => {
+    const targetId = targetPlaylistId || activePlaylist;
+    if (!targetId || !song.trackId) return;
 
     try {
       const { error } = await supabase
         .from("playlist_tracks")
         .delete()
-        .eq("playlist_id", activePlaylist)
+        .eq("playlist_id", targetId)
         .eq("track_id", song.trackId);
 
       if (error) {
@@ -273,12 +287,29 @@ export function useLibrary(userId: string) {
         return;
       }
 
-      setPlaylistSongs((items) => items.filter((item) => item.trackId !== song.trackId));
+      setPlaylistTrackMap((prev) => ({
+        ...prev,
+        [targetId]: (prev[targetId] ?? []).filter((id) => id !== song.trackId),
+      }));
+      if (targetId === activePlaylist) {
+        setPlaylistSongs((items) => items.filter((item) => item.trackId !== song.trackId));
+      }
       setMessage(`"${song.title}" listeden çıkarıldı.`);
     } catch (err: unknown) {
       setMessage(`Çıkarma hatası: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
+
+  const isTrackInPlaylist = useCallback(
+    (playlistId: string, trackId: string) => {
+      if (!playlistId || !trackId) return false;
+      if (playlistId === activePlaylist && playlistSongs.some((s) => s.trackId === trackId)) {
+        return true;
+      }
+      return (playlistTrackMap[playlistId] ?? []).includes(trackId);
+    },
+    [activePlaylist, playlistSongs, playlistTrackMap]
+  );
 
   // AKILLI LİSTE KAYDETME (AŞAMA 5)
   const saveSmart = async (name: string, songs: Song[]) => {
@@ -304,6 +335,10 @@ export function useLibrary(userId: string) {
 
       setActivePlaylist(id);
       setPlaylistSongs(uniqueSongs);
+      setPlaylistTrackMap((prev) => ({
+        ...prev,
+        [id]: uniqueSongs.map((s) => s.trackId),
+      }));
       setMessage(`"${name}" (${uniqueSongs.length} parça) başarıyla kaydedildi.`);
     } catch (err: unknown) {
       setMessage(`Akıllı liste kaydetme hatası: ${err instanceof Error ? err.message : String(err)}`);
@@ -316,6 +351,8 @@ export function useLibrary(userId: string) {
     activePlaylist,
     setActivePlaylist,
     playlistSongs,
+    playlistTrackMap,
+    isTrackInPlaylist,
     message,
     setMessage,
     loading,

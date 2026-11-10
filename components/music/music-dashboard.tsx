@@ -17,6 +17,7 @@ import {
   ListMusic,
   MoreHorizontal,
   Play,
+  Plus,
   Radio,
   Search,
   Shuffle,
@@ -131,6 +132,15 @@ export default function MusicDashboard({
   const [topbarSearch, setTopbarSearch] = useState("");
   const [externalSearchQuery, setExternalSearchQuery] = useState("");
 
+  // İstediğin Albüme / Koleksiyona Şarkı Koyma (Modal Seçici + Koleksiyon İçi Şarkı Ekleme)
+  const [pickerSong, setPickerSong] = useState<Song | null>(null);
+  const [pickerNewName, setPickerNewName] = useState("");
+  const [showAlbumAdder, setShowAlbumAdder] = useState(false);
+  const [adderQuery, setAdderQuery] = useState("");
+  const [adderSource, setAdderSource] = useState<"recommended" | "favorites" | "search">("recommended");
+  const [adderSearchResults, setAdderSearchResults] = useState<Song[]>([]);
+  const [adderSearching, setAdderSearching] = useState(false);
+
   // Ana Dashboard (Home) verileri
   const [homeSongs, setHomeSongs] = useState<Song[]>([]);
   const [dailySong, setDailySong] = useState<Song | null>(null);
@@ -153,6 +163,54 @@ export default function MusicDashboard({
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
   }, []);
+
+  // Mobil alt barın ekran ilk açıldığında yukarıda kalmasını önleyen viewport senkronizasyonu
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncViewportBottom = () => {
+      if (window.innerWidth <= 768 && window.scrollY === 0) {
+        window.scrollTo(0, 0);
+      }
+      const vv = window.visualViewport;
+      if (vv && window.innerWidth <= 768) {
+        const bottomGap = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+        document.documentElement.style.setProperty(
+          "--vv-bottom-fix",
+          bottomGap > 0 && bottomGap < 80 ? `${Math.round(bottomGap)}px` : "0px"
+        );
+      } else {
+        document.documentElement.style.setProperty("--vv-bottom-fix", "0px");
+      }
+    };
+
+    syncViewportBottom();
+    const rafId = window.requestAnimationFrame(syncViewportBottom);
+    const timerId = window.setTimeout(syncViewportBottom, 120);
+
+    window.addEventListener("resize", syncViewportBottom, { passive: true });
+    window.addEventListener("pageshow", syncViewportBottom, { passive: true });
+    window.visualViewport?.addEventListener("resize", syncViewportBottom, { passive: true });
+    window.visualViewport?.addEventListener("scroll", syncViewportBottom, { passive: true });
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.clearTimeout(timerId);
+      window.removeEventListener("resize", syncViewportBottom);
+      window.removeEventListener("pageshow", syncViewportBottom);
+      window.visualViewport?.removeEventListener("resize", syncViewportBottom);
+      window.visualViewport?.removeEventListener("scroll", syncViewportBottom);
+    };
+  }, [tab]);
+
+  // Escape tuşu ile Koleksiyon Seçici Modalı kapat
+  useEffect(() => {
+    if (!pickerSong) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPickerSong(null);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [pickerSong]);
 
   // Ana Dashboard için öne çıkan & günlük parçaları yükle
   useEffect(() => {
@@ -359,19 +417,48 @@ export default function MusicDashboard({
   const activePlaylistObj = library.playlists.find((p) => p.id === library.activePlaylist) ?? null;
 
   const add = (track: Song) => {
-    const playlistId = library.activePlaylist || library.playlists[0]?.id || "";
-    if (!playlistId) {
-      const msg = "Önce yeni bir çalma listesi oluştur.";
-      library.setMessage(msg);
-      showToast(msg);
-      setTab("playlists");
+    setPickerNewName("");
+    setPickerSong(track);
+  };
+
+  const handleAddSongToPlaylist = async (playlistId: string, playlistTitle: string, track: Song) => {
+    const alreadyIn = library.isTrackInPlaylist(playlistId, track.trackId);
+    if (alreadyIn) {
+      await library.removeFromPlaylist(track, playlistId);
+      showToast(`"${track.title}" — "${playlistTitle}" albümünden çıkarıldı.`);
       return;
     }
-    if (!library.activePlaylist) {
-      library.setActivePlaylist(playlistId);
+    const ok = await library.addToPlaylist(playlistId, track);
+    if (ok) {
+      showToast(`"${track.title}" → "${playlistTitle}" albümüne eklendi.`);
     }
-    void library.addToPlaylist(playlistId, track);
-    showToast(`"${track.title}" çalma listesine eklendi.`);
+  };
+
+  const handleCreatePlaylistAndAdd = async (track: Song) => {
+    const clean = pickerNewName.trim();
+    if (!clean) return;
+    const newId = await library.createPlaylist(clean);
+    if (newId) {
+      setPickerNewName("");
+      await library.addToPlaylist(newId, track);
+      showToast(`"${clean}" albümü oluşturuldu ve "${track.title}" eklendi.`);
+    }
+  };
+
+  const handleSearchAlbumAdder = async (queryText: string) => {
+    const q = queryText.trim();
+    if (!q) return;
+    setAdderSearching(true);
+    setAdderSource("search");
+    try {
+      const data = await postMusic("/api/music/search", { query: q });
+      const results = Array.isArray(data?.songs) ? (data.songs as Song[]) : [];
+      setAdderSearchResults(results);
+    } catch {
+      setAdderSearchResults([]);
+    } finally {
+      setAdderSearching(false);
+    }
   };
 
   const featuredHeroSong = song ?? dailySong ?? homeSongs[0] ?? library.favorites[0] ?? null;
@@ -1093,6 +1180,15 @@ export default function MusicDashboard({
                         <span>Tümünü Oynat</span>
                       </button>
                     )}
+                    <button
+                      id="btn-toggle-album-adder"
+                      type="button"
+                      className={showAlbumAdder ? "action-btn next-btn" : "action-btn"}
+                      onClick={() => setShowAlbumAdder((prev) => !prev)}
+                    >
+                      <Plus size={15} />
+                      <span>{showAlbumAdder ? "Şarkı Seçiciyi Kapat" : "Şarkı Ekle"}</span>
+                    </button>
                     {editingId !== activePlaylistObj.id && (
                       <button
                         type="button"
@@ -1117,6 +1213,141 @@ export default function MusicDashboard({
                     </button>
                   </div>
                 </div>
+
+                {/* Bu Albüme / Koleksiyona İstediğin Şarkıyı Seç & Ekle Stüdyo Paneli */}
+                {showAlbumAdder && (
+                  <div className="album-adder-panel" id="album-adder-panel">
+                    <div className="album-adder-header">
+                      <div>
+                        <span className="eyebrow">ALBÜM İÇERİĞİNİ DÜZENLE</span>
+                        <h3>&ldquo;{activePlaylistObj.name}&rdquo; koleksiyonuna şarkı ekle</h3>
+                      </div>
+                      <button
+                        type="button"
+                        className="icon-action"
+                        onClick={() => setShowAlbumAdder(false)}
+                        aria-label="Paneli kapat"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+
+                    <form
+                      className="album-adder-search"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        void handleSearchAlbumAdder(adderQuery);
+                      }}
+                    >
+                      <Search size={16} />
+                      <input
+                        type="search"
+                        value={adderQuery}
+                        onChange={(e) => setAdderQuery(e.target.value)}
+                        placeholder="İstediğin şarkıyı veya sanatçıyı ara (örn. Duman, Sezen Aksu, Mor ve Ötesi)..."
+                        aria-label="Koleksiyona eklenecek şarkıyı ara"
+                      />
+                      <button type="submit" disabled={adderSearching || !adderQuery.trim()}>
+                        {adderSearching ? "Aranıyor..." : "Ara"}
+                      </button>
+                    </form>
+
+                    <div className="album-adder-tabs">
+                      <button
+                        type="button"
+                        className={adderSource === "recommended" ? "album-adder-tab active" : "album-adder-tab"}
+                        onClick={() => setAdderSource("recommended")}
+                      >
+                        Önerilen Şarkılar ({homeSongs.length})
+                      </button>
+                      <button
+                        type="button"
+                        className={adderSource === "favorites" ? "album-adder-tab active" : "album-adder-tab"}
+                        onClick={() => setAdderSource("favorites")}
+                      >
+                        Favorilerim ({library.favorites.length})
+                      </button>
+                      {adderSearchResults.length > 0 && (
+                        <button
+                          type="button"
+                          className={adderSource === "search" ? "album-adder-tab active" : "album-adder-tab"}
+                          onClick={() => setAdderSource("search")}
+                        >
+                          Arama Sonuçları ({adderSearchResults.length})
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="album-adder-list">
+                      {(adderSource === "search"
+                        ? adderSearchResults
+                        : adderSource === "favorites"
+                        ? library.favorites
+                        : homeSongs
+                      ).length === 0 ? (
+                        <div className="album-adder-empty">
+                          {adderSearching
+                            ? "Şarkılar aranıyor..."
+                            : "Burada henüz şarkı yok. Yukarıdaki arama çubuğundan istediğin şarkıyı arayabilirsin."}
+                        </div>
+                      ) : (
+                        (adderSource === "search"
+                          ? adderSearchResults
+                          : adderSource === "favorites"
+                          ? library.favorites
+                          : homeSongs
+                        )
+                          .slice(0, 12)
+                          .map((candidate) => {
+                            const inCurrentAlbum = library.isTrackInPlaylist(
+                              activePlaylistObj.id,
+                              candidate.trackId
+                            );
+                            return (
+                              <div key={candidate.trackId} className="album-adder-row">
+                                <div className="album-adder-song">
+                                  {candidate.artwork ? (
+                                    <img src={candidate.artwork} alt={candidate.title} />
+                                  ) : (
+                                    <div className="album-adder-fallback">
+                                      <Disc3 size={18} />
+                                    </div>
+                                  )}
+                                  <div className="album-adder-meta">
+                                    <strong>{candidate.title}</strong>
+                                    <span>{candidate.artist}</span>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  className={inCurrentAlbum ? "album-adder-btn is-added" : "album-adder-btn"}
+                                  onClick={() =>
+                                    void handleAddSongToPlaylist(
+                                      activePlaylistObj.id,
+                                      activePlaylistObj.name,
+                                      candidate
+                                    )
+                                  }
+                                >
+                                  {inCurrentAlbum ? (
+                                    <>
+                                      <Check size={14} />
+                                      <span>Albümde</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Plus size={14} />
+                                      <span>Albüme Ekle</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            );
+                          })
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <SongGrid
                   songs={library.playlistSongs}
@@ -1228,6 +1459,120 @@ export default function MusicDashboard({
                   </button>
                 );
               })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* İstediğin Albüme / Koleksiyona Şarkı Koyma Seçici Modal */}
+      {pickerSong && (
+        <div
+          className="playlist-picker-backdrop"
+          id="playlist-picker-backdrop"
+          onClick={() => setPickerSong(null)}
+        >
+          <div
+            className="playlist-picker-modal"
+            id="playlist-picker-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Albüm veya koleksiyon seç"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="playlist-picker-header">
+              <div>
+                <span className="eyebrow">KOLEKSİYONA EKLE</span>
+                <h3>Hangi albüme eklensin?</h3>
+              </div>
+              <button
+                type="button"
+                className="icon-action"
+                onClick={() => setPickerSong(null)}
+                aria-label="Kapat"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="playlist-picker-song">
+              {pickerSong.artwork ? (
+                <img src={pickerSong.artwork} alt={pickerSong.title} />
+              ) : (
+                <div className="playlist-picker-fallback">
+                  <Disc3 size={20} />
+                </div>
+              )}
+              <div className="playlist-picker-song-meta">
+                <strong>{pickerSong.title}</strong>
+                <span>{pickerSong.artist}</span>
+              </div>
+            </div>
+
+            <form
+              className="playlist-picker-create"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void handleCreatePlaylistAndAdd(pickerSong);
+              }}
+            >
+              <FolderPlus size={16} />
+              <input
+                type="text"
+                value={pickerNewName}
+                onChange={(e) => setPickerNewName(e.target.value)}
+                placeholder="Yeni albüm / liste oluştur ve ekle..."
+                maxLength={40}
+              />
+              <button type="submit" disabled={!pickerNewName.trim()}>
+                Oluştur &amp; Ekle
+              </button>
+            </form>
+
+            <div className="playlist-picker-list">
+              {library.playlists.length === 0 ? (
+                <div className="playlist-picker-empty">
+                  Henüz bir albümün yok. Yukarıdan yeni bir isim yazıp anında oluşturabilir ve bu şarkıyı ekleyebilirsin.
+                </div>
+              ) : (
+                library.playlists.map((pl) => {
+                  const alreadyAdded = library.isTrackInPlaylist(pl.id, pickerSong.trackId);
+                  return (
+                    <button
+                      key={pl.id}
+                      type="button"
+                      className={
+                        alreadyAdded ? "playlist-picker-item is-added" : "playlist-picker-item"
+                      }
+                      onClick={() => void handleAddSongToPlaylist(pl.id, pl.name, pickerSong)}
+                    >
+                      <span className="playlist-picker-item-icon">
+                        <ListMusic size={16} />
+                      </span>
+                      <span className="playlist-picker-item-info">
+                        <strong>{pl.name}</strong>
+                        <small>
+                          {alreadyAdded
+                            ? "Bu albümde mevcut (Çıkarmak için dokun)"
+                            : "Bu albüme eklemek için dokun"}
+                        </small>
+                      </span>
+                      <span className="playlist-picker-item-badge">
+                        {alreadyAdded ? (
+                          <>
+                            <Check size={14} />
+                            <span>Eklendi</span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus size={14} />
+                            <span>Ekle</span>
+                          </>
+                        )}
+                      </span>
+                    </button>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
