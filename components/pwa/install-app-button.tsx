@@ -29,7 +29,9 @@ export default function InstallAppButton({ compact = false }: { compact?: boolea
     }
 
     const ua = window.navigator.userAgent || "";
-    setIsIOS(/iPhone|iPad|iPod/i.test(ua));
+    const isAppleMobile = /iPhone|iPad|iPod/i.test(ua);
+    const isIPadOSDesktopMode = ua.includes("Macintosh") && (window.navigator.maxTouchPoints ?? 0) > 1;
+    setIsIOS(isAppleMobile || isIPadOSDesktopMode);
 
     const handler = (event: Event) => {
       event.preventDefault();
@@ -51,12 +53,7 @@ export default function InstallAppButton({ compact = false }: { compact?: boolea
   }, []);
 
   if (installed) {
-    if (compact) return null;
-    return (
-      <div className="install-pill installed">
-        <Check size={14} /> Uygulama kurulu
-      </div>
-    );
+    return null;
   }
 
   const handleInstall = async () => {

@@ -19,6 +19,8 @@ html,
 body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  overflow-x: hidden;
   background: var(--bg);
   color: var(--text);
   font-family: Manrope, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -75,7 +77,9 @@ a {
    ========================================================= */
 .music-app {
   height: 100vh;
-  width: 100vw;
+  height: 100dvh;
+  width: 100%;
+  max-width: 100%;
   overflow: hidden;
   display: grid;
   grid-template-columns: 248px 1fr;
@@ -89,6 +93,7 @@ a {
 /* ----- Sol Kenar Çubuğu (Sıfır Kaydırma Çubuğu, Net Stüdyo Hatları) ----- */
 .music-sidebar {
   height: 100vh;
+  height: 100dvh;
   padding: 22px 16px 18px;
   display: flex;
   flex-direction: column;
@@ -380,8 +385,10 @@ a {
 /* ----- Sağ İçerik Alanı (Sağda Boş Bar Yok, Sadece Gerektiğinde İnce Çubuk) ----- */
 .music-main {
   height: 100vh;
+  height: 100dvh;
   overflow-y: auto;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   padding: 0 clamp(24px, 4vw, 56px) 128px;
   width: 100%;
   scrollbar-width: none;
@@ -1353,17 +1360,22 @@ a {
    ========================================================= */
 @media (max-width: 1120px) and (min-width: 769px) {
   .music-app {
-    grid-template-columns: 78px 1fr;
+    grid-template-columns: 80px 1fr;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
   }
 
   .music-sidebar {
-    padding: 18px 10px;
+    width: 80px;
+    padding: 16px 8px;
     align-items: center;
   }
 
   .sidebar-brand-row {
     justify-content: center;
-    padding: 2px 0 12px;
+    padding: 4px 0 14px;
+    width: 100%;
   }
 
   .music-sidebar .brand {
@@ -1380,14 +1392,33 @@ a {
   }
 
   .side-link {
-    justify-content: center;
-    padding: 9px;
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 4px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    transition: background 0.16s, color 0.16s, transform 0.16s;
+  }
+
+  .side-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: scale(1.04);
+  }
+
+  .side-link.active {
+    background: rgba(198, 255, 0, 0.14) !important;
+    color: var(--lime) !important;
+    box-shadow: inset 0 0 0 1px rgba(198, 255, 0, 0.35);
   }
 
   .sidebar-bottom {
     flex-direction: column;
-    padding: 8px 6px;
+    padding: 8px 4px;
     gap: 8px;
+    align-items: center;
+    width: 100%;
   }
 
   .install-btn-compact {
@@ -1395,7 +1426,8 @@ a {
   }
 
   .mood-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
   }
 
   .now-playing-card {
@@ -1410,8 +1442,24 @@ a {
   }
 
   .mini-player {
-    left: 94px;
-    right: 16px;
+    left: 96px;
+    right: 20px;
+    bottom: 20px;
+    padding: 10px 14px;
+  }
+
+  .mini-player .player-seek {
+    min-width: 140px;
+    flex: 1;
+  }
+
+  .mini-player .player-volume {
+    min-width: 90px;
+  }
+
+  .song-grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 12px;
   }
 }
 
@@ -1419,9 +1467,30 @@ a {
    TELEFON GÖRÜNÜMÜ (<= 768px): NATIVE ALT BAR & TAM EKRAN
    ========================================================= */
 @media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* iOS Safari 16px font-size kuralı: Input açıldığında otomatik yakınlaştırmayı engeller */
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="password"],
+  .music-search input,
+  .playlist-create-bar input,
+  .playlist-rename-input,
+  .magic-email-field input {
+    font-size: 16px !important;
+  }
+
   .music-app {
     grid-template-columns: 1fr;
+    height: 100vh;
     height: 100dvh;
+    overflow-x: hidden;
+    width: 100%;
   }
 
   .music-sidebar {
@@ -1430,10 +1499,17 @@ a {
 
   .mobile-brand {
     display: flex;
+    align-items: center;
+    gap: 6px;
   }
 
   .install-btn-compact {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 10px;
+    font-size: 11.5px;
   }
 
   .mobile-user {
@@ -1441,8 +1517,11 @@ a {
   }
 
   .music-main {
+    height: 100vh;
     height: 100dvh;
     padding: 0 16px calc(168px + env(safe-area-inset-bottom, 0px));
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
 
   .music-topbar {
@@ -1450,10 +1529,13 @@ a {
     position: sticky;
     top: 0;
     z-index: 15;
-    background: rgba(9, 9, 13, 0.88);
+    background: rgba(9, 9, 13, 0.92);
     backdrop-filter: blur(18px);
     margin: 0 -16px;
     padding: 0 16px;
+    padding-top: env(safe-area-inset-top, 0px);
+    width: calc(100% + 32px);
+    box-sizing: border-box;
   }
 
   .music-topbar .eyebrow {
@@ -1461,12 +1543,12 @@ a {
   }
 
   .music-heading {
-    padding: 18px 0 14px;
+    padding: 16px 0 12px;
   }
 
   .music-heading h1 {
-    font-size: 25px;
-    letter-spacing: -0.8px;
+    font-size: 24px;
+    letter-spacing: -0.7px;
   }
 
   .music-heading p {
@@ -1476,9 +1558,20 @@ a {
   .discover-top-controls {
     flex-direction: column;
     gap: 8px;
+    width: 100%;
+  }
+
+  .music-search {
+    width: 100%;
+  }
+
+  .music-search input {
+    min-width: 0;
+    flex: 1;
   }
 
   .quick-shuffle-btn {
+    min-height: 44px;
     height: 44px;
     width: 100%;
   }
@@ -1489,8 +1582,8 @@ a {
   }
 
   .mood-card {
-    min-height: 84px;
-    padding: 12px 14px;
+    min-height: 80px;
+    padding: 12px 12px;
   }
 
   .mood-card b {
@@ -1526,12 +1619,24 @@ a {
   .now-playing-actions .action-btn {
     flex: 1 1 calc(50% - 6px);
     min-width: 125px;
+    min-height: 44px;
     padding: 11px 12px;
     font-size: 12px;
   }
 
   .playlist-create-bar {
     max-width: 100%;
+    width: 100%;
+  }
+
+  .playlist-create-bar input {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .playlist-create-bar button {
+    min-height: 44px;
+    height: 44px;
   }
 
   .playlist-cards-row {
@@ -1549,11 +1654,34 @@ a {
 
   .active-playlist-actions .action-btn {
     flex: 1;
+    min-height: 44px;
+  }
+
+  .playlist-rename-row {
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .playlist-rename-input {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
   }
 
   .song-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
+  }
+
+  /* Dokunmatik butonlar: 40-44px erişilebilir alan */
+  .icon-action {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 8px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
   }
 
   .mini-player {
@@ -1563,15 +1691,47 @@ a {
     padding: 10px 12px;
     min-height: 66px;
     border-radius: 14px;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
   }
 
   .mini-player > img,
   .player-fallback {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     border-radius: 8px;
+    flex: none;
+  }
+
+  .player-track {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .player-transport {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: none;
+  }
+
+  .player-transport > button {
+    min-width: 42px;
+    min-height: 42px;
+    display: grid;
+    place-items: center;
+    padding: 4px;
+  }
+
+  .player-control {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .player-close-btn {
+    min-width: 38px;
+    min-height: 38px;
+    flex: none;
   }
 
   .player-seek {
@@ -1579,6 +1739,11 @@ a {
     width: 100%;
     flex: 1 1 100%;
     min-width: 100%;
+  }
+
+  .player-seek input[type="range"] {
+    height: 28px;
+    cursor: pointer;
   }
 
   .player-volume {
@@ -1592,23 +1757,20 @@ a {
     bottom: 0;
     z-index: 30;
     height: calc(60px + env(safe-area-inset-bottom, 0px));
-    padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
     background: rgba(11, 11, 16, 0.96);
     backdrop-filter: blur(20px);
     border-top: 1px solid var(--line);
     display: flex;
     align-items: center;
     justify-content: space-around;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .mobile-bottom-nav::-webkit-scrollbar {
-    display: none;
+    overflow-x: hidden;
   }
 
   .mobile-tab {
     flex: 1;
-    min-width: 48px;
+    min-width: 0;
+    min-height: 46px;
     border: 0;
     background: transparent;
     color: #7c8091;
@@ -1618,11 +1780,184 @@ a {
     justify-content: center;
     gap: 3px;
     padding: 4px 2px;
-    font: 600 9.5px Manrope, sans-serif;
+    font: 600 10px Manrope, sans-serif;
     cursor: pointer;
+    transition: color 0.16s;
   }
 
   .mobile-tab.active {
     color: var(--lime);
+  }
+
+  /* Daha Fazla Alt Çekmece (Sheet) */
+  .mobile-more-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .mobile-more-sheet {
+    background: #111219;
+    border-top: 1px solid var(--line-strong);
+    border-radius: 20px 20px 0 0;
+    padding: 16px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7);
+  }
+
+  .mobile-more-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--muted);
+    font: 700 11px "DM Mono", monospace;
+    letter-spacing: 1.5px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .mobile-more-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 0;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+
+  .mobile-more-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mobile-more-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.16s, border-color 0.16s;
+    min-height: 52px;
+  }
+
+  .mobile-more-card.active {
+    border-color: var(--lime);
+    background: rgba(198, 255, 0, 0.08);
+    color: var(--lime);
+  }
+
+  .mobile-more-card-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .mobile-more-card-text strong {
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .mobile-more-card.active .mobile-more-card-text strong {
+    color: var(--lime);
+  }
+
+  .mobile-more-card-text small {
+    font-size: 11px;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* =========================================================
+   DAR EKRANLI TELEFONLAR (<= 360px: iPhone SE, Galaxy A01 vb.)
+   ========================================================= */
+@media (max-width: 360px) {
+  .music-main {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .music-topbar {
+    margin: 0 -10px;
+    padding: 0 10px;
+    width: calc(100% + 20px);
+  }
+
+  .music-heading h1 {
+    font-size: 21px;
+  }
+
+  .mood-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .mood-card {
+    padding: 8px 10px;
+    min-height: 72px;
+  }
+
+  .mood-card b {
+    font-size: 13px;
+  }
+
+  .song-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .song-card {
+    padding: 7px;
+    gap: 6px;
+  }
+
+  .song-info strong {
+    font-size: 11.5px;
+  }
+
+  .mini-player {
+    left: 6px;
+    right: 6px;
+    padding: 8px 8px;
+    gap: 6px;
+  }
+
+  .mini-player > img,
+  .player-fallback {
+    width: 36px;
+    height: 36px;
+  }
+
+  .install-btn-compact span {
+    display: none;
+  }
+
+  .install-btn-compact {
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    justify-content: center;
   }
 }

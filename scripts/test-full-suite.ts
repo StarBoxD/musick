@@ -322,6 +322,15 @@ async function runAllTests() {
   });
 
   // -------------------------------------------------------------
+  // BÖLÜM 8: 10 Viewport Boyutu & Responsive Matrisi
+  // -------------------------------------------------------------
+  const { runResponsiveMatrixTests } = await import("./test-responsive-matrix");
+  const respResult = runResponsiveMatrixTests();
+  respResult.results.forEach((r) => {
+    check(r.category, r.name, r.passed, r.details);
+  });
+
+  // -------------------------------------------------------------
   // SONUÇLARI YAZDIR
   // -------------------------------------------------------------
   let allOk = true;

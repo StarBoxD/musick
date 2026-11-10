@@ -69,6 +69,7 @@ export default function MiniPlayer({
 
   // Ses seviyesi değiştiğinde SADECE ses seviyesini güncelle (şarkıyı asla yeniden yükleme)
   useEffect(() => {
+    volumeRef.current = volume;
     if (audioRef.current) {
       audioRef.current.volume = volume;
     }
@@ -413,8 +414,9 @@ export default function MiniPlayer({
           value={Math.min(time, duration || 0)}
           disabled={!isReady}
           aria-label="Şarkı Süresi"
-          onMouseDown={() => setIsSeeking(true)}
-          onTouchStart={() => setIsSeeking(true)}
+          onPointerDown={() => setIsSeeking(true)}
+          onPointerUp={() => setIsSeeking(false)}
+          onPointerCancel={() => setIsSeeking(false)}
           onChange={(event) => {
             const next = Number(event.target.value);
             setTime(next);
@@ -422,8 +424,6 @@ export default function MiniPlayer({
               audioRef.current.currentTime = next;
             }
           }}
-          onMouseUp={() => setIsSeeking(false)}
-          onTouchEnd={() => setIsSeeking(false)}
         />
       </div>
 
