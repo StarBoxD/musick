@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimitRetryAfter } from "@/lib/music/rate-limit";
 
 export async function requireUser() {
   const supabase = await createClient();
@@ -36,6 +37,12 @@ export async function guardMusic() {
   }
   if (!data) {
     return { supabase, user: null, denied: NextResponse.json({ error: "Bu hesap özel betada değil." }, { status: 403 }) };
+  }
+  const retryAfter = rateLimitRetryAfter(user.id);
+  if (retryAfter > 0) {
+    const denied = NextResponse.json({ error: "Çok hızlı istek gönderildi. Birkaç saniye sonra tekrar dene." }, { status: 429 });
+    denied.headers.set("Retry-After", String(retryAfter));
+    return { supabase, user: null, denied };
   }
   return { supabase, user, denied: null };
 }

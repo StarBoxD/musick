@@ -160,3 +160,36 @@
   color: #555b65;
   letter-spacing: 1px;
 }
+
+.auth-card h1.status-title {
+  font-size: clamp(30px, 8vw, 44px);
+  letter-spacing: -1.5px;
+  overflow-wrap: anywhere;
+}
+
+.status-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.status-actions .btn-primary {
+  cursor: pointer;
+}
+
+.route-loading {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  background: var(--bg);
+  color: var(--lime);
+  font: 10px "DM Mono", monospace;
+  letter-spacing: 2px;
+}
+
+.route-loading span {
+  color: #9a9da7;
+}

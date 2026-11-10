@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { gatherSongs, termsFor } from "@/lib/music/catalog";
+import { pickFreshSongs, termsFor } from "@/lib/music/catalog";
 import { guardMusic, istanbulDay } from "@/lib/music/session";
-import { takeUnseen } from "@/lib/music/unseen";
 import type { Song } from "@/types/music";
 
 export async function GET() {
@@ -21,7 +20,7 @@ async function handleDaily() {
   if (existing.data?.song) return NextResponse.json({ song: existing.data.song as Song, day, exhausted: false });
 
   try {
-    const picked = await takeUnseen(supabase, await gatherSongs(termsFor("daily")), 1, "daily");
+    const picked = await pickFreshSongs(supabase, termsFor("daily"), 1, "daily");
     if (picked.error) return NextResponse.json({ error: picked.error }, { status: 503 });
     const song = picked.songs[0];
     if (!song) return NextResponse.json({ song: null, day, exhausted: true });

@@ -3,19 +3,9 @@ import {
   type AudiusTrack,
   evaluateAudiusTrack,
   sanitizeAudiusTrackToSong,
-  verifyTrackLicense,
 } from "@/lib/music/license-filter";
 
 const API = "https://api.audius.co/v1";
-
-/**
- * Validates a license string according to verified schemas.
- * Safe default: returns empty string if unverified.
- */
-export function acceptedLicense(license?: string | null): string {
-  const check = verifyTrackLicense(license);
-  return check.status === "VERIFIED" ? check.label : "";
-}
 
 /**
  * Checks whether an Audius track passes license and access requirements.
