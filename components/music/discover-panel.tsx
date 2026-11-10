@@ -57,6 +57,7 @@ export default function DiscoverPanel({
   const [mood, setMood] = useState<Mood | null>(null);
   const [query, setQuery] = useState("");
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
+  const [discoveredSongs, setDiscoveredSongs] = useState<Song[]>([]);
   const [searchResults, setSearchResults] = useState<Song[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -71,6 +72,10 @@ export default function DiscoverPanel({
       const picked = (data.songs ?? [])[0] as Song | undefined;
       if (picked) {
         setCurrentSong(picked);
+        setDiscoveredSongs((prev) => [
+          picked,
+          ...prev.filter((item) => item.trackId !== picked.trackId),
+        ]);
         onPlay([picked], 0, { type: "mood", mood: nextMood });
         setMessage("");
       } else {
@@ -284,6 +289,28 @@ export default function DiscoverPanel({
             onPlay={(songs, idx, src) => {
               if (songs[idx]) setCurrentSong(songs[idx]);
               onPlay(songs, idx, src ?? { type: "search", query });
+            }}
+            onFavorite={onFavorite}
+            onAddToQueue={onAddToQueue}
+            onAdd={onAdd}
+          />
+        </section>
+      )}
+
+      {searchResults.length === 0 && discoveredSongs.length > 0 && (
+        <section className="discover-search-results">
+          <div className="section-caption">
+            <span>KEŞFEDİLEN FREKANS PARÇALARI ({discoveredSongs.length})</span>
+          </div>
+          <SongGrid
+            songs={discoveredSongs}
+            favorites={favorites}
+            pendingFavorites={pendingFavorites}
+            empty="Henüz parça keşfedilmedi."
+            source={mood ? { type: "mood", mood } : { type: "direct" }}
+            onPlay={(songs, idx, src) => {
+              if (songs[idx]) setCurrentSong(songs[idx]);
+              onPlay(songs, idx, src ?? (mood ? { type: "mood", mood } : { type: "direct" }));
             }}
             onFavorite={onFavorite}
             onAddToQueue={onAddToQueue}

@@ -10,6 +10,7 @@ import { spawn, ChildProcess } from "child_process";
 import fs from "fs";
 import path from "path";
 import os from "os";
+import http from "http";
 import * as esbuild from "esbuild";
 
 interface DomMeasurementResult {
@@ -75,19 +76,27 @@ async function buildReactMountBundle(): Promise<string> {
     import { createRoot } from "react-dom/client";
     import SongGrid from "./components/music/song-grid";
 
-    const makeArtwork = (c1: string, c2: string, label: string) =>
+    const makeArtwork = (c1: string, c2: string, accent: string, title: string, sub: string) =>
       \`data:image/svg+xml;utf8,\${encodeURIComponent(
-        \`<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+        \`<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">
           <defs>
-            <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stop-color="\${c1}"/>
               <stop offset="100%" stop-color="\${c2}"/>
             </linearGradient>
+            <radialGradient id="glow" cx="75%" cy="25%" r="60%">
+              <stop offset="0%" stop-color="\${accent}" stop-opacity="0.38"/>
+              <stop offset="100%" stop-color="\${c2}" stop-opacity="0"/>
+            </radialGradient>
           </defs>
-          <rect width="240" height="240" fill="url(#g)"/>
-          <circle cx="120" cy="120" r="68" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2"/>
-          <circle cx="120" cy="120" r="24" fill="rgba(9,9,13,0.55)"/>
-          <text x="20" y="214" fill="rgba(255,255,255,0.85)" font-family="sans-serif" font-weight="800" font-size="22">\${label}</text>
+          <rect width="480" height="480" fill="url(#bg)"/>
+          <rect width="480" height="480" fill="url(#glow)"/>
+          <circle cx="240" cy="210" r="128" fill="rgba(9,9,13,0.34)" stroke="rgba(255,255,255,0.14)" stroke-width="2"/>
+          <circle cx="240" cy="210" r="88" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+          <circle cx="240" cy="210" r="42" fill="\${accent}" fill-opacity="0.85"/>
+          <circle cx="240" cy="210" r="12" fill="#09090d"/>
+          <text x="36" y="404" fill="#f5f5f7" font-family="sans-serif" font-weight="800" font-size="34" letter-spacing="-0.8">\${title}</text>
+          <text x="36" y="438" fill="rgba(245,245,247,0.68)" font-family=" monospace" font-weight="600" font-size="18" letter-spacing="2">\${sub}</text>
         </svg>\`
       )}\`;
 
@@ -97,7 +106,7 @@ async function buildReactMountBundle(): Promise<string> {
         title: "Bir Derdim Var (Canlı Stüdyo Kaydı - 2026 Remastered Özel Versiyon)",
         artist: "Mor ve Ötesi feat. Şebnem Ferah & Teoman",
         album: "Dünya Yalan Söylüyor",
-        artwork: makeArtwork("#232742", "#141624", "MVÖ"),
+        artwork: makeArtwork("#1e2547", "#0d101d", "#d2ff5a", "MOR VE ÖTESİ", "DÜNYA YALAN SÖYLÜYOR"),
         streamUrl: "https://api.audius.co/v1/tracks/trk-1/stream?app_name=VYBE",
         durationSeconds: 214,
         genre: "Alternatif Rock",
@@ -110,7 +119,7 @@ async function buildReactMountBundle(): Promise<string> {
         title: "Antidepresan",
         artist: "Mert Demir & Mabel Matiz",
         album: "Antidepresan",
-        artwork: makeArtwork("#2d1f3d", "#141320", "MD"),
+        artwork: makeArtwork("#361d47", "#120d1a", "#ff7eb6", "ANTİDEPRESAN", "MERT DEMİR • MABEL MATİZ"),
         streamUrl: "https://api.audius.co/v1/tracks/trk-2/stream?app_name=VYBE",
         durationSeconds: 198,
         genre: "Türkçe Pop",
@@ -123,7 +132,7 @@ async function buildReactMountBundle(): Promise<string> {
         title: "Haberin Yok Ölüyorum",
         artist: "Duman",
         album: "Belki Alışman Lazım",
-        artwork: "",
+        artwork: makeArtwork("#1b333b", "#0d1518", "#5ce1e6", "DUMAN", "BELKİ ALIŞMAN LAZIM"),
         streamUrl: "https://api.audius.co/v1/tracks/trk-3/stream?app_name=VYBE",
         durationSeconds: 242,
         genre: "Rock",
@@ -136,7 +145,7 @@ async function buildReactMountBundle(): Promise<string> {
         title: "Gülpembe (Anadolu Rock Klasikleri Koleksiyonu)",
         artist: "Barış Manço & Kurtalan Ekspres",
         album: "Sözüm Meclisten Dışarı",
-        artwork: makeArtwork("#1e332a", "#111816", "BM"),
+        artwork: makeArtwork("#1f3a2c", "#0f1713", "#d2ff5a", "BARIŞ MANÇO", "KURTALAN EKSPRES"),
         streamUrl: "https://api.audius.co/v1/tracks/trk-4/stream?app_name=VYBE",
         durationSeconds: 265,
         genre: "Anadolu Rock",
@@ -149,7 +158,7 @@ async function buildReactMountBundle(): Promise<string> {
         title: "Fırtınadayım",
         artist: "Mabel Matiz",
         album: "Maya",
-        artwork: makeArtwork("#3b232e", "#161219", "MM"),
+        artwork: makeArtwork("#42202c", "#160e12", "#ffb86c", "FIRTINADAYIM", "MABEL MATİZ • MAYA"),
         streamUrl: "https://api.audius.co/v1/tracks/trk-5/stream?app_name=VYBE",
         durationSeconds: 208,
         genre: "Indie Pop",
@@ -348,13 +357,33 @@ export async function runRealBrowserAudit(): Promise<{
   const port = 9333;
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "vybe-browser-test-"));
   const harnessPath = path.resolve(process.cwd(), "scripts/harness.html");
-  const fileUrl = `file:///${harnessPath.replace(/\\/g, "/")}`;
-  const screenshotDir =
-    "C:\\Users\\efedo\\.gemini\\antigravity\\brain\\84a8fea8-9ffb-452f-981e-803b5e12bcb8\\screenshots";
+  const cssPath = path.resolve(process.cwd(), "app/globals.css");
+  const artifactRoot =
+    "C:\\Users\\efedo\\.gemini\\antigravity\\brain\\84a8fea8-9ffb-452f-981e-803b5e12bcb8";
+  const screenshotDir = path.join(artifactRoot, "screenshots");
 
   if (!fs.existsSync(screenshotDir)) {
     fs.mkdirSync(screenshotDir, { recursive: true });
   }
+
+  // Serve real app CSS & React bundle over local HTTP server
+  const server = http.createServer((req, res) => {
+    const reqUrl = req.url || "/";
+    if (reqUrl.includes("globals.css")) {
+      res.writeHead(200, { "Content-Type": "text/css; charset=utf-8" });
+      res.end(fs.readFileSync(cssPath, "utf-8"));
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    const html = fs
+      .readFileSync(harnessPath, "utf-8")
+      .replace("../app/globals.css", "/app/globals.css");
+    res.end(html);
+  });
+
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", () => resolve()));
+  const httpPort = (server.address() as { port: number }).port;
+  const fileUrl = `http://127.0.0.1:${httpPort}/dashboard`;
 
   const chromeProc: ChildProcess = spawn(browserPath, [
     "--headless=new",
@@ -442,7 +471,15 @@ export async function runRealBrowserAudit(): Promise<{
       });
       const screenshotFilename = `viewport_${width}.png`;
       const fullScreenshotPath = path.join(screenshotDir, screenshotFilename);
-      fs.writeFileSync(fullScreenshotPath, Buffer.from(screenshotData.data, "base64"));
+      const pngBuffer = Buffer.from(screenshotData.data, "base64");
+      fs.writeFileSync(fullScreenshotPath, pngBuffer);
+      if (width === 390) {
+        fs.writeFileSync(path.join(artifactRoot, "vybe_phone_390.png"), pngBuffer);
+      } else if (width === 820) {
+        fs.writeFileSync(path.join(artifactRoot, "vybe_tablet_820.png"), pngBuffer);
+      } else if (width === 1440) {
+        fs.writeFileSync(path.join(artifactRoot, "vybe_desktop_1440.png"), pngBuffer);
+      }
 
       // Run comprehensive DOM & React interaction tests
       const evalScript = `
@@ -472,18 +509,29 @@ export async function runRealBrowserAudit(): Promise<{
           const cards = Array.from(document.querySelectorAll(".song-card"));
           const cardCount = cards.length;
 
-          // Cover dimensions
-          const firstCover = document.querySelector(".song-cover");
+          // Cover dimensions & 3-device layout verification:
+          // - Phone (<= 768px): Nothing OS style single-column horizontal row (60x60px or 64x64px square cover)
+          // - Tablet (769px - 1120px): Ronas IT style 2-column vertical album card (full card width square cover >= 240px)
+          // - Desktop (>= 1121px): Moosync style 3/4-column vertical album card (full card width large square cover >= 220px)
+          const firstCard = cards[0];
+          const firstCover = document.querySelector(".song-cover-wrap") || document.querySelector(".song-cover");
+          const cardRect = firstCard ? firstCard.getBoundingClientRect() : { width: 0, height: 0 };
           const coverRect = firstCover ? firstCover.getBoundingClientRect() : { width: 0, height: 0 };
           const coverWidth = Math.round(coverRect.width);
           const coverHeight = Math.round(coverRect.height);
           let coverSizeOk = false;
           if (window.innerWidth <= 768) {
-            coverSizeOk = coverWidth >= 58 && coverWidth <= 70 && Math.abs(coverWidth - coverHeight) <= 1;
+            coverSizeOk = coverWidth >= 58 && coverWidth <= 68 && Math.abs(coverWidth - coverHeight) <= 1;
           } else if (window.innerWidth <= 1120) {
-            coverSizeOk = coverWidth >= 68 && coverWidth <= 84 && Math.abs(coverWidth - coverHeight) <= 1;
+            coverSizeOk =
+              coverWidth >= 240 &&
+              Math.abs(coverWidth - coverHeight) <= 2 &&
+              coverWidth >= Math.round(cardRect.width) - 34;
           } else {
-            coverSizeOk = coverWidth >= 88 && coverWidth <= 104 && Math.abs(coverWidth - coverHeight) <= 1;
+            coverSizeOk =
+              coverWidth >= 220 &&
+              Math.abs(coverWidth - coverHeight) <= 2 &&
+              coverWidth >= Math.round(cardRect.width) - 36;
           }
 
           // Typography readability
@@ -495,9 +543,9 @@ export async function runRealBrowserAudit(): Promise<{
           if (window.innerWidth <= 768) {
             typographyReadableOk = titleFontSize >= 14.8 && titleFontSize <= 16.5 && artistFontSize >= 12.8 && artistFontSize <= 14.5;
           } else if (window.innerWidth <= 1120) {
-            typographyReadableOk = titleFontSize >= 14 && titleFontSize <= 15.5 && artistFontSize >= 12 && artistFontSize <= 13.5;
+            typographyReadableOk = titleFontSize >= 14.5 && titleFontSize <= 15.8 && artistFontSize >= 12.5 && artistFontSize <= 13.8;
           } else {
-            typographyReadableOk = titleFontSize >= 15 && titleFontSize <= 16.5 && artistFontSize >= 13 && artistFontSize <= 14.5;
+            typographyReadableOk = titleFontSize >= 15.5 && titleFontSize <= 16.8 && artistFontSize >= 13.5 && artistFontSize <= 14.8;
           }
 
           // Check that cards do not overlap each other
@@ -848,6 +896,7 @@ export async function runRealBrowserAudit(): Promise<{
   } finally {
     cdp.close();
     chromeProc.kill();
+    server.close();
     try {
       fs.rmSync(tempDir, { recursive: true, force: true });
     } catch {

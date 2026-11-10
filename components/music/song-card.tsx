@@ -26,28 +26,34 @@ type Props = {
 
 const MENU_OPEN_EVENT = "vybe:song-menu-open";
 
-export default function SongCard({
+type SongMenuProps = {
+  song: Song;
+  favorite: boolean;
+  isPendingFavorite: boolean;
+  menuOpen: boolean;
+  setMenuOpen: (open: boolean) => void;
+  onFavorite: (song: Song) => void;
+  onAddToQueue?: (song: Song) => void;
+  onAddToPlaylist: (song: Song) => void;
+  onRemove?: (song: Song) => void;
+};
+
+function SongMenu({
   song,
   favorite,
-  isPendingFavorite = false,
-  onPlay,
+  isPendingFavorite,
+  menuOpen,
+  setMenuOpen,
   onFavorite,
   onAddToQueue,
   onAddToPlaylist,
   onRemove,
-}: Props) {
+}: SongMenuProps) {
   const menuId = useId();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
-  const [imgError, setImgError] = useState(false);
-
   const menuWrapRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    setImgError(false);
-  }, [song.artwork]);
 
   // Aynı anda yalnızca tek bir şarkı kartının menüsü açık olabilir
   useEffect(() => {
@@ -62,7 +68,7 @@ export default function SongCard({
     return () => {
       window.removeEventListener(MENU_OPEN_EVENT, handleOtherMenuOpen);
     };
-  }, [menuId]);
+  }, [menuId, setMenuOpen]);
 
   // Dışarı tıklama, Escape tuşu ve yön tuşlarıyla menü kontrolü
   useEffect(() => {
@@ -114,7 +120,7 @@ export default function SongCard({
       document.removeEventListener("touchstart", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [menuOpen]);
+  }, [menuOpen, setMenuOpen]);
 
   const toggleMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -136,177 +142,198 @@ export default function SongCard({
   };
 
   return (
+    <div className="song-menu-wrap" ref={menuWrapRef}>
+      <button
+        ref={triggerRef}
+        type="button"
+        className={`song-menu-trigger icon-action ${menuOpen ? "active" : ""}`}
+        onClick={toggleMenu}
+        aria-label={`${song.title} seçenekleri`}
+        aria-haspopup="menu"
+        aria-expanded={menuOpen}
+        title="Şarkı seçenekleri"
+      >
+        {isPendingFavorite ? (
+          <Loader2 size={18} className="spin-fast" />
+        ) : (
+          <MoreHorizontal size={20} />
+        )}
+      </button>
+
+      {menuOpen && (
+        <div
+          ref={menuRef}
+          className={`song-dropdown-menu ${openUpward ? "open-up" : "open-down"}`}
+          role="menu"
+          aria-label={`${song.title} işlemleri`}
+        >
+          <button
+            type="button"
+            role="menuitem"
+            className={`song-menu-item ${favorite ? "is-favorite" : ""}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              if (isPendingFavorite) return;
+              onFavorite(song);
+              setMenuOpen(false);
+            }}
+            disabled={isPendingFavorite}
+          >
+            {isPendingFavorite ? (
+              <Loader2 size={16} className="spin-fast" />
+            ) : (
+              <Heart size={16} fill={favorite ? "currentColor" : "none"} />
+            )}
+            <span>
+              {isPendingFavorite
+                ? "İşleniyor..."
+                : favorite
+                ? "Favorilerden çıkar"
+                : "Favorilere ekle"}
+            </span>
+          </button>
+
+          {onAddToQueue && (
+            <button
+              type="button"
+              role="menuitem"
+              className="song-menu-item"
+              onClick={(event) => {
+                event.stopPropagation();
+                onAddToQueue(song);
+                setMenuOpen(false);
+              }}
+            >
+              <ListEnd size={16} />
+              <span>Sıraya ekle</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            role="menuitem"
+            className="song-menu-item"
+            onClick={(event) => {
+              event.stopPropagation();
+              onAddToPlaylist(song);
+              setMenuOpen(false);
+            }}
+          >
+            <ListPlus size={16} />
+            <span>Çalma listesine ekle</span>
+          </button>
+
+          {onRemove && (
+            <>
+              <div className="song-menu-divider" role="separator" />
+              <button
+                type="button"
+                role="menuitem"
+                className="song-menu-item is-danger"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onRemove(song);
+                  setMenuOpen(false);
+                }}
+              >
+                <Trash2 size={16} />
+                <span>Listeden çıkar</span>
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function SongCard({
+  song,
+  favorite,
+  isPendingFavorite = false,
+  onPlay,
+  onFavorite,
+  onAddToQueue,
+  onAddToPlaylist,
+  onRemove,
+}: Props) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [song.artwork]);
+
+  const handlePlay = () => {
+    onPlay();
+  };
+
+  const coverUrl = song.artwork && !imgError ? song.artwork : "";
+
+  return (
     <article
       className={`song-card ${menuOpen ? "is-menu-open" : ""}`}
       data-track-id={song.trackId}
     >
       <button
         type="button"
-        className="song-cover"
-        onClick={onPlay}
-        aria-label={`${song.title} - ${song.artist} çal`}
+        className="song-cover-wrap"
+        onClick={handlePlay}
+        aria-label={`${song.title} şarkısını çal`}
       >
-        {song.artwork && !imgError ? (
+        {coverUrl ? (
           <img
-            src={song.artwork}
+            className="song-cover"
+            src={coverUrl}
             alt=""
             loading="lazy"
             onError={() => setImgError(true)}
           />
         ) : (
-          <span className="song-cover-fallback" aria-hidden="true">
+          <span className="song-cover song-cover-fallback" aria-hidden="true">
             <span className="song-cover-fallback-disc">
-              <Disc3 size={26} />
+              <Disc3 size={34} />
             </span>
           </span>
         )}
-        <span className="cover-play" aria-hidden="true">
-          <span className="cover-play-badge">
-            <Play size={18} fill="currentColor" />
-          </span>
+        <span className="cover-play-badge" aria-hidden="true">
+          <Play size={18} fill="currentColor" />
         </span>
       </button>
 
-      <div className="song-body">
-        <div
-          className="song-info"
-          onClick={onPlay}
-          role="button"
-          tabIndex={0}
-          aria-label={`${song.title} oynat`}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              onPlay();
-            }
-          }}
-        >
-          <strong className="song-title" title={song.title}>
-            {song.title}
-          </strong>
-          <span className="song-artist" title={song.artist}>
-            {song.artist}
-          </span>
-          {(song.genre || favorite) && (
-            <div className="song-meta">
-              {song.genre && <span className="song-genre-pill">{song.genre}</span>}
-              {favorite && (
-                <span
-                  className="song-fav-badge"
-                  title="Favorilerde kayıtlı"
-                  aria-label="Favorilerde kayıtlı"
-                >
-                  <Heart size={11} fill="currentColor" />
-                  <span>Favori</span>
-                </span>
-              )}
-            </div>
-          )}
+      <div
+        className="song-info"
+        onClick={handlePlay}
+        role="button"
+        tabIndex={0}
+        aria-label={`${song.title} - ${song.artist} oynat`}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handlePlay();
+          }
+        }}
+      >
+        <div className="song-title" title={song.title}>
+          {song.title}
         </div>
 
-        <div className="song-menu-wrap" ref={menuWrapRef}>
-          <button
-            ref={triggerRef}
-            type="button"
-            className={`song-menu-trigger icon-action ${menuOpen ? "active" : ""}`}
-            onClick={toggleMenu}
-            aria-label={`${song.title} seçenekleri`}
-            aria-haspopup="menu"
-            aria-expanded={menuOpen}
-            title="Şarkı seçenekleri"
-          >
-            {isPendingFavorite ? (
-              <Loader2 size={18} className="spin-fast" />
-            ) : (
-              <MoreHorizontal size={20} />
-            )}
-          </button>
-
-          {menuOpen && (
-            <div
-              ref={menuRef}
-              className={`song-dropdown-menu ${openUpward ? "open-up" : "open-down"}`}
-              role="menu"
-              aria-label={`${song.title} işlemleri`}
-            >
-              <button
-                type="button"
-                role="menuitem"
-                className={`song-menu-item ${favorite ? "is-favorite" : ""}`}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (isPendingFavorite) return;
-                  onFavorite(song);
-                  setMenuOpen(false);
-                }}
-                disabled={isPendingFavorite}
-              >
-                {isPendingFavorite ? (
-                  <Loader2 size={16} className="spin-fast" />
-                ) : (
-                  <Heart size={16} fill={favorite ? "currentColor" : "none"} />
-                )}
-                <span>
-                  {isPendingFavorite
-                    ? "İşleniyor..."
-                    : favorite
-                    ? "Favorilerden çıkar"
-                    : "Favorilere ekle"}
-                </span>
-              </button>
-
-              {onAddToQueue && (
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="song-menu-item"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onAddToQueue(song);
-                    setMenuOpen(false);
-                  }}
-                >
-                  <ListEnd size={16} />
-                  <span>Sıraya ekle</span>
-                </button>
-              )}
-
-              <button
-                type="button"
-                role="menuitem"
-                className="song-menu-item"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onAddToPlaylist(song);
-                  setMenuOpen(false);
-                }}
-              >
-                <ListPlus size={16} />
-                <span>Çalma listesine ekle</span>
-              </button>
-
-              {onRemove && (
-                <>
-                  <div className="song-menu-divider" role="separator" />
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="song-menu-item is-danger"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onRemove(song);
-                      setMenuOpen(false);
-                    }}
-                  >
-                    <Trash2 size={16} />
-                    <span>Listeden çıkar</span>
-                  </button>
-                </>
-              )}
-            </div>
-          )}
+        <div className="song-artist" title={song.artist}>
+          {song.artist}
         </div>
       </div>
+
+      <SongMenu
+        song={song}
+        favorite={favorite}
+        isPendingFavorite={isPendingFavorite}
+        menuOpen={menuOpen}
+        setMenuOpen={setMenuOpen}
+        onFavorite={onFavorite}
+        onAddToQueue={onAddToQueue}
+        onAddToPlaylist={onAddToPlaylist}
+        onRemove={onRemove}
+      />
     </article>
   );
 }
