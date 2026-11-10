@@ -5,6 +5,14 @@ import { takeUnseen } from "@/lib/music/unseen";
 import type { Song } from "@/types/music";
 
 export async function GET() {
+  return handleDaily();
+}
+
+export async function POST() {
+  return handleDaily();
+}
+
+async function handleDaily() {
   const { user, supabase, denied } = await guardMusic();
   if (denied || !user || !supabase) return denied ?? NextResponse.json({ error: "Giriş gerekli." }, { status: 401 });
   const day = istanbulDay();

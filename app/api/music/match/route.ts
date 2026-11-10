@@ -11,6 +11,14 @@ function topKeys(songs: Song[], key: "artist" | "genre") {
 }
 
 export async function GET() {
+  return handleMatch();
+}
+
+export async function POST() {
+  return handleMatch();
+}
+
+async function handleMatch() {
   const { user, supabase, denied } = await guardMusic();
   if (denied || !user || !supabase) return denied ?? NextResponse.json({ error: "Giriş gerekli." }, { status: 401 });
   const favorites = await supabase.from("favorites").select("song").eq("user_id", user.id);

@@ -1027,6 +1027,25 @@ a {
   font-size: 12px;
 }
 
+.playlist-rename-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.playlist-rename-input {
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  color: var(--fg);
+  font-size: 16px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  outline: none;
+  min-width: 200px;
+}
+
 .active-playlist-actions {
   display: flex;
   gap: 10px;

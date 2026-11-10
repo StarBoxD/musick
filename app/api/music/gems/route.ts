@@ -4,6 +4,14 @@ import { guardMusic } from "@/lib/music/session";
 import { takeUnseen } from "@/lib/music/unseen";
 
 export async function GET() {
+  return handleGems();
+}
+
+export async function POST() {
+  return handleGems();
+}
+
+async function handleGems() {
   const { user, supabase, denied } = await guardMusic();
   if (denied || !user || !supabase) return denied ?? NextResponse.json({ error: "Giriş gerekli." }, { status: 401 });
   try {

@@ -6,6 +6,7 @@ import SongCard from "@/components/music/song-card";
 type Props = {
   songs: Song[];
   favorites: Song[];
+  pendingFavorites?: Set<string>;
   empty: string;
   onPlay: (songs: Song[], index: number) => void;
   onFavorite: (song: Song) => void;
@@ -13,7 +14,16 @@ type Props = {
   onRemove?: (song: Song) => void;
 };
 
-export default function SongGrid({ songs, favorites, empty, onPlay, onFavorite, onAdd, onRemove }: Props) {
+export default function SongGrid({
+  songs,
+  favorites,
+  pendingFavorites,
+  empty,
+  onPlay,
+  onFavorite,
+  onAdd,
+  onRemove,
+}: Props) {
   if (!songs.length) return <div className="empty-state">{empty}</div>;
   return (
     <div className="song-grid">
@@ -22,6 +32,7 @@ export default function SongGrid({ songs, favorites, empty, onPlay, onFavorite, 
           key={song.trackId}
           song={song}
           favorite={favorites.some((item) => item.trackId === song.trackId)}
+          isPendingFavorite={pendingFavorites?.has(song.trackId)}
           onPlay={() => onPlay(songs, index)}
           onFavorite={onFavorite}
           onAddToPlaylist={onAdd}

@@ -8,6 +8,7 @@ import {
   Headphones,
   Heart,
   ListPlus,
+  Loader2,
   Moon,
   Radio,
   Search,
@@ -21,6 +22,7 @@ import type { Mood, Song } from "@/types/music";
 
 type Props = {
   favorites: Song[];
+  pendingFavorites?: Set<string>;
   onPlay: (songs: Song[], index: number) => void;
   onFavorite: (song: Song) => void;
   onAdd: (song: Song) => void;
@@ -40,7 +42,13 @@ const MOOD_META: Record<
   Dark: { label: "Alt Rock", desc: "Türkçe Rock & Kült", tag: "ROCK", icon: Flame },
 };
 
-export default function DiscoverPanel({ favorites, onPlay, onFavorite, onAdd }: Props) {
+export default function DiscoverPanel({
+  favorites,
+  pendingFavorites,
+  onPlay,
+  onFavorite,
+  onAdd,
+}: Props) {
   const [mood, setMood] = useState<Mood | null>(null);
   const [query, setQuery] = useState("");
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
@@ -212,8 +220,13 @@ export default function DiscoverPanel({ favorites, onPlay, onFavorite, onAdd }: 
                 type="button"
                 className={`action-btn ${isFav ? "fav-active" : ""}`}
                 onClick={() => onFavorite(currentSong)}
+                disabled={currentSong ? pendingFavorites?.has(currentSong.trackId) : false}
               >
-                <Heart size={15} fill={isFav ? "currentColor" : "none"} />
+                {currentSong && pendingFavorites?.has(currentSong.trackId) ? (
+                  <Loader2 size={15} className="spin-fast" />
+                ) : (
+                  <Heart size={15} fill={isFav ? "currentColor" : "none"} />
+                )}
                 <span>{isFav ? "Favorilerde" : "Favorilere Ekle"}</span>
               </button>
               <button

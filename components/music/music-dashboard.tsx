@@ -4,7 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   AudioLines,
+  Check,
   Compass,
+  Edit2,
   FolderPlus,
   Gem,
   Heart,
@@ -14,6 +16,7 @@ import {
   SunMedium,
   Trash2,
   Wand2,
+  X,
 } from "lucide-react";
 import type { Song } from "@/types/music";
 import SignOutButton from "@/components/sign-out-button";
@@ -79,11 +82,28 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
   const [queue, setQueue] = useState<Song[]>([]);
   const [index, setIndex] = useState(0);
   const [playlistName, setPlaylistName] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
   const song = queue[index] ?? null;
 
   const play = (songs: Song[], nextIndex: number) => {
     setQueue(songs);
     setIndex(nextIndex);
+  };
+
+  const fetchMoreSongs = async () => {
+    try {
+      const { postMusic } = await import("@/lib/music/audius");
+      const data = await postMusic("/api/music/discover", { mood: "Chill" });
+      const fresh = (data.songs ?? []) as Song[];
+      if (fresh.length) {
+        setQueue((prev) => [...prev, ...fresh]);
+      } else {
+        library.setMessage("Tüm yeni parçalar dinlendi.");
+      }
+    } catch {
+      // sessizce geç
+    }
   };
 
   const activePlaylistObj = library.playlists.find((p) => p.id === library.activePlaylist) ?? null;
@@ -195,6 +215,7 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
         {tab === "discover" && (
           <DiscoverPanel
             favorites={library.favorites}
+            pendingFavorites={library.pendingFavorites}
             onPlay={play}
             onFavorite={library.toggleFavorite}
             onAdd={add}
@@ -206,6 +227,7 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
             key={tab}
             mode={tab}
             favorites={library.favorites}
+            pendingFavorites={library.pendingFavorites}
             onPlay={play}
             onFavorite={library.toggleFavorite}
             onAdd={add}
@@ -217,6 +239,7 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
           <SongGrid
             songs={library.favorites}
             favorites={library.favorites}
+            pendingFavorites={library.pendingFavorites}
             empty="Henüz favorilere eklenmiş bir parça yok."
             onPlay={play}
             onFavorite={library.toggleFavorite}
@@ -304,7 +327,41 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
                 <div className="active-playlist-banner">
                   <div>
                     <span className="eyebrow">AKTİF KOLEKSİYON</span>
-                    <h2>{activePlaylistObj.name}</h2>
+                    {editingId === activePlaylistObj.id ? (
+                      <div className="playlist-rename-row">
+                        <input
+                          type="text"
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          placeholder="Yeni liste adı"
+                          autoFocus
+                          className="playlist-rename-input"
+                        />
+                        <button
+                          type="button"
+                          className="icon-action"
+                          onClick={async () => {
+                            if (editTitle.trim()) {
+                              const ok = await library.renamePlaylist(activePlaylistObj.id, editTitle.trim());
+                              if (ok) setEditingId(null);
+                            }
+                          }}
+                          title="Kaydet"
+                        >
+                          <Check size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          className="icon-action"
+                          onClick={() => setEditingId(null)}
+                          title="İptal"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <h2>{activePlaylistObj.name}</h2>
+                    )}
                     <small>{library.playlistSongs.length} parça</small>
                   </div>
                   <div className="active-playlist-actions">
@@ -316,6 +373,20 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
                       >
                         <Play size={15} fill="currentColor" />
                         <span>Tümünü Oynat</span>
+                      </button>
+                    )}
+                    {editingId !== activePlaylistObj.id && (
+                      <button
+                        type="button"
+                        className="action-btn"
+                        onClick={() => {
+                          setEditingId(activePlaylistObj.id);
+                          setEditTitle(activePlaylistObj.name);
+                        }}
+                        title="Listeyi yeniden adlandır"
+                      >
+                        <Edit2 size={15} />
+                        <span>Yeniden Adlandır</span>
                       </button>
                     )}
                     <button
@@ -332,6 +403,7 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
                 <SongGrid
                   songs={library.playlistSongs}
                   favorites={library.favorites}
+                  pendingFavorites={library.pendingFavorites}
                   empty="Bu listede henüz parça yok. Radyoda veya aramada beğendiğin şarkılarda 'Listeye Ekle' butonuna bas."
                   onPlay={play}
                   onFavorite={library.toggleFavorite}
@@ -360,9 +432,12 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
 
       <MiniPlayer
         song={song}
+        hasPrev={index > 0}
+        hasNext={index < queue.length - 1}
         onClose={() => setQueue([])}
         onPrev={() => setIndex((value) => Math.max(0, value - 1))}
         onNext={() => setIndex((value) => Math.min(queue.length - 1, value + 1))}
+        onNeedMoreSongs={fetchMoreSongs}
       />
     </main>
   );

@@ -3,14 +3,8 @@ import type { Song } from "@/types/music";
 
 type Db = SupabaseClient;
 
-function missingFeature(error: { message?: string; code?: string } | null) {
-  if (!error) return false;
-  const text = `${error.code ?? ""} ${error.message ?? ""}`;
-  return /claim_unseen_tracks|seen_tracks|schema cache|does not exist|42P01|PGRST205|42883/i.test(text);
-}
-
-function shuffle(songs: Song[]) {
-  const copy = [...songs];
+function shuffle<T>(items: T[]): T[] {
+  const copy = [...items];
   for (let index = copy.length - 1; index > 0; index -= 1) {
     const swap = Math.floor(Math.random() * (index + 1));
     [copy[index], copy[swap]] = [copy[swap], copy[index]];
@@ -18,22 +12,101 @@ function shuffle(songs: Song[]) {
   return copy;
 }
 
-export async function takeUnseen(supabase: Db, pool: Song[], take: number, source: string) {
-  if (!pool.length) return { songs: [] as Song[], exhausted: false, error: undefined };
-  
-  // Önce kullanıcının gerçekten dinlediği (seen_tracks) şarkıları filtreliyoruz ama henüz dinlenmemiş şarkıyı hemen DB'ye kaydetmiyoruz!
-  const shuffled = shuffle(pool);
-  const trackIds = shuffled.map((s) => s.trackId);
-  
-  const { data: seenRows, error } = await supabase
-    .from("seen_tracks")
-    .select("track_id")
-    .in("track_id", trackIds.slice(0, 50));
-    
-  const seenSet = new Set((seenRows ?? []).map((r: { track_id: string }) => r.track_id));
-  const fresh = shuffled.filter((s) => !seenSet.has(s.trackId)).slice(0, take);
-  
-  // Eğer havuz bittiyse bile kullanıcıyı müziksiz bırakma, rastgele şarkı çal
-  const songs = fresh.length > 0 ? fresh : shuffled.slice(0, take);
-  return { songs, exhausted: false, error: undefined };
+/**
+ * Splits an array into chunks of a given size.
+ */
+function chunkArray<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
+export type UnseenResult = {
+  songs: Song[];
+  exhausted: boolean;
+  error?: string;
+};
+
+/**
+ * Filters out tracks the user has already listened to (seen_tracks) across
+ * all candidate track IDs without limiting checks to only the first 50.
+ *
+ * If no fresh tracks remain in the pool, sets exhausted: true and does NOT
+ * silently present previously heard songs as fresh.
+ */
+export async function takeUnseen(
+  supabase: Db,
+  pool: Song[],
+  take: number,
+  source: string
+): Promise<UnseenResult> {
+  if (!pool.length) {
+    return { songs: [], exhausted: true, error: undefined };
+  }
+
+  // Deduplicate pool by trackId
+  const uniquePoolMap = new Map<string, Song>();
+  pool.forEach((s) => {
+    if (s.trackId && !uniquePoolMap.has(s.trackId)) {
+      uniquePoolMap.set(s.trackId, s);
+    }
+  });
+  const uniquePool = [...uniquePoolMap.values()];
+  const trackIds = uniquePool.map((s) => s.trackId);
+
+  // Query seen_tracks in chunks of 100 to avoid PostgREST query length limits
+  const chunks = chunkArray(trackIds, 100);
+  const seenSet = new Set<string>();
+
+  try {
+    for (const chunk of chunks) {
+      const { data, error } = await supabase
+        .from("seen_tracks")
+        .select("track_id")
+        .in("track_id", chunk);
+
+      if (error) {
+        // If seen_tracks table is temporarily unavailable or missing, pass through error safely
+        return {
+          songs: [],
+          exhausted: false,
+          error: `Dinleme geçmişi sorgulanamadı: ${error.message}`,
+        };
+      }
+
+      if (Array.isArray(data)) {
+        data.forEach((row: { track_id: string }) => seenSet.add(row.track_id));
+      }
+    }
+  } catch (err: unknown) {
+    return {
+      songs: [],
+      exhausted: false,
+      error: `Veritabanı bağlantı hatası: ${err instanceof Error ? err.message : String(err)}`,
+    };
+  }
+
+  // Filter out any track already heard
+  const unseenPool = uniquePool.filter((song) => !seenSet.has(song.trackId));
+
+  if (unseenPool.length === 0) {
+    // All songs in this pool have been heard.
+    // Truthful report: do not silently present seen songs as new.
+    return {
+      songs: [],
+      exhausted: true,
+      error: undefined,
+    };
+  }
+
+  const shuffled = shuffle(unseenPool);
+  const picked = shuffled.slice(0, take);
+
+  return {
+    songs: picked,
+    exhausted: false,
+    error: undefined,
+  };
 }

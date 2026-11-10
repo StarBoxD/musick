@@ -1,11 +1,12 @@
 "use client";
 
-import { Heart, ListPlus, Music, Play, Trash2 } from "lucide-react";
+import { Heart, ListPlus, Loader2, Music, Play, Trash2 } from "lucide-react";
 import type { Song } from "@/types/music";
 
 type Props = {
   song: Song;
   favorite: boolean;
+  isPendingFavorite?: boolean;
   onPlay: () => void;
   onFavorite: (song: Song) => void;
   onAddToPlaylist: (song: Song) => void;
@@ -15,6 +16,7 @@ type Props = {
 export default function SongCard({
   song,
   favorite,
+  isPendingFavorite = false,
   onPlay,
   onFavorite,
   onAddToPlaylist,
@@ -45,9 +47,14 @@ export default function SongCard({
             onClick={() => onFavorite(song)}
             aria-label="Favori"
             className={favorite ? "icon-action is-favorite" : "icon-action"}
-            title="Favorilere ekle"
+            title={favorite ? "Favorilerden çıkar" : "Favorilere ekle"}
+            disabled={isPendingFavorite}
           >
-            <Heart size={16} fill={favorite ? "currentColor" : "none"} />
+            {isPendingFavorite ? (
+              <Loader2 size={16} className="spin-fast" />
+            ) : (
+              <Heart size={16} fill={favorite ? "currentColor" : "none"} />
+            )}
           </button>
           <button
             onClick={() => onAddToPlaylist(song)}
