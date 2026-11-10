@@ -15,9 +15,10 @@ export async function POST(request: NextRequest) {
   try {
     const pool = await gatherSongs(termsFor("mood", body.mood));
     if (!pool.length) {
-      return NextResponse.json({ songs: [], exhausted: true, note: "Bu mood için üçüncü taraf oynatıma açık yeni parça yok." });
+      return NextResponse.json({ songs: [], exhausted: true, note: "Bu mood için parça bulunamadı." });
     }
-    const picked = await takeUnseen(supabase, pool, 8, `mood:${body.mood}`);
+    // Sadece 1 adet rastgele parça seçiyoruz (ekranda liste dolmayacak, doğrudan çalacak)
+    const picked = await takeUnseen(supabase, pool, 1, `mood:${body.mood}`);
     if (picked.error) return NextResponse.json({ error: picked.error, songs: [] }, { status: 503 });
     return NextResponse.json({ songs: picked.songs, exhausted: picked.exhausted });
   } catch {

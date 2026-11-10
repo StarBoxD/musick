@@ -64,7 +64,7 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
           <span className="eyebrow"><Sparkles size={13} /> {COPY[tab].kicker}</span>
           <div className="mobile-user">{displayName}<SignOutButton /></div>
         </header>
-        <div className="music-heading"><div><h1>{COPY[tab].title}</h1><p>Yalnızca lisansı üçüncü taraf oynatıma açık Audius parçaları. Belirsiz ve tüm hakları saklı kayıtlar gelmez.</p></div></div>
+        <div className="music-heading"><div><h1>{COPY[tab].title}</h1><p>Türkçe özel radyo deneyimi. Bir moda tıkla, aralıksız rastgele çalsın.</p></div></div>
         {library.message && <p className="music-message">{library.message}</p>}
         {tab === "discover" && <DiscoverPanel favorites={library.favorites} onPlay={play} onFavorite={library.toggleFavorite} onAdd={add} />}
         {(tab === "daily" || tab === "match" || tab === "gems" || tab === "smart") && (

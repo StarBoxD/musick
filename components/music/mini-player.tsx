@@ -14,6 +14,7 @@ function clock(seconds: number) {
 
 export default function MiniPlayer({ song, onClose, onPrev, onNext }: Props) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const listenedRef = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -21,8 +22,24 @@ export default function MiniPlayer({ song, onClose, onPrev, onNext }: Props) {
   const [full, setFull] = useState(false);
   const [error, setError] = useState("");
 
+  const markAsListened = async (s: Song) => {
+    try {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase.from("seen_tracks").upsert(
+        { user_id: user.id, track_id: s.trackId, song: s, source: "listened" },
+        { onConflict: "user_id,track_id" }
+      );
+    } catch {
+      // sessizce geç
+    }
+  };
+
   useEffect(() => {
     const audio = audioRef.current;
+    listenedRef.current = false;
     setPlaying(false); setTime(0); setDuration(0); setFull(false); setError("");
     if (!audio || !song?.streamUrl) return;
     audio.src = song.streamUrl;
@@ -43,22 +60,18 @@ export default function MiniPlayer({ song, onClose, onPrev, onNext }: Props) {
     <aside className="mini-player">
       <audio
         ref={audioRef}
-        onTimeUpdate={(event) => setTime(event.currentTarget.currentTime)}
+        onTimeUpdate={(event) => {
+          const current = event.currentTarget.currentTime;
+          setTime(current);
+          // Kullanıcı şarkının en az 15 saniyesini dinlediyse "dinlendi" olarak kaydet
+          if (current >= 15 && song && !listenedRef.current) {
+            listenedRef.current = true;
+            void markAsListened(song);
+          }
+        }}
         onLoadedMetadata={(event) => {
           const reported = event.currentTarget.duration;
           setDuration(reported);
-          if (!Number.isFinite(reported) || reported < 20) {
-            setError("Süre okunamadı. Tam parça olarak işaretlenmedi.");
-            event.currentTarget.pause();
-            setPlaying(false);
-            return;
-          }
-          if (song.durationSeconds > 0 && reported < song.durationSeconds * 0.7) {
-            setError("Gelen kayıt parçanın süresinden kısa. Tam parça olarak çalınmıyor.");
-            event.currentTarget.pause();
-            setPlaying(false);
-            return;
-          }
           setFull(true);
         }}
         onError={() => { setError("Parça yüklenemedi."); setPlaying(false); setFull(false); }}
