@@ -1,9 +1,15 @@
 /* ----- Mobile Mini Player & Bottom Navigation (<= 768px) ----- */
 @media (max-width: 768px) {
+  /* Home-screen iPhones report a 34px inset; the home indicator only needs ~20px of it. */
+  :root {
+    --vybe-nav-safe: max(6px, calc(env(safe-area-inset-bottom, 0px) - 14px));
+    --vybe-nav-height: calc(54px + var(--vybe-nav-safe));
+  }
+
   .mini-player {
     left: 10px;
     right: 10px;
-    bottom: calc(66px + env(safe-area-inset-bottom, 0px) - var(--vv-bottom-fix, 0px));
+    bottom: calc(var(--vybe-nav-height) + 6px - var(--vv-bottom-fix, 0px));
     padding: 10px 12px;
     min-height: 66px;
     border-radius: 14px;
@@ -54,6 +60,11 @@
     flex: none;
   }
 
+  /* The full-screen player header carries its own close button. */
+  .mini-player:not(.is-expanded) > .player-close-btn {
+    display: none;
+  }
+
   .player-seek {
     order: 10;
     width: 100%;
@@ -76,8 +87,8 @@
     right: 0;
     bottom: calc(0px - var(--vv-bottom-fix, 0px));
     z-index: 30;
-    height: calc(60px + env(safe-area-inset-bottom, 0px));
-    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+    height: var(--vybe-nav-height);
+    padding: 6px 4px var(--vybe-nav-safe);
     background: rgba(11, 11, 16, 0.98);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);

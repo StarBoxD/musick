@@ -19,8 +19,12 @@
   .mini-player {
     left: 96px;
     right: 20px;
-    bottom: 20px;
+    bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 8px));
     padding: 10px 14px;
+  }
+
+  .music-main {
+    padding-bottom: calc(128px + env(safe-area-inset-bottom, 0px));
   }
 
   .mini-player .player-seek {

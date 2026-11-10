@@ -147,7 +147,7 @@
   .music-toast {
     left: 16px;
     right: 16px;
-    bottom: calc(184px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(124px + var(--vybe-nav-height, 60px));
     justify-content: center;
   }
 
