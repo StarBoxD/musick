@@ -40,12 +40,15 @@ interface DomMeasurementResult {
   tabletSidebarOk: boolean;
   sidebarWidth: number;
   playlistFormNoOverflow: boolean;
+  profileLineNoOverlap: boolean;
+  headingNoOverlap: boolean;
+  headerAlignOk: boolean;
   debugButtons?: { id: string; w: number; h: number }[];
   screenshotSaved: boolean;
   screenshotPath: string;
 }
 
-const VIEWPORT_WIDTHS = [320, 375, 390, 430, 768, 820, 1024, 1180, 1366, 1920];
+const VIEWPORT_WIDTHS = [320, 375, 390, 430, 768, 820, 1024, 1180, 1280, 1366, 1440, 1920];
 
 function getBrowserExecutable(): string | null {
   const candidates = [
@@ -281,6 +284,35 @@ export async function runRealBrowserAudit(): Promise<{
           const mainRect = main ? main.getBoundingClientRect() : { right: 9999 };
           const playlistFormNoOverflow = formRect.right <= mainRect.right + 2;
 
+          // Topbar Line vs Profile Overlap (Yatay çizgi profil üzerine biniyor mu?)
+          const topbar = document.querySelector(".music-topbar");
+          const mobileUser = document.querySelector(".mobile-user");
+          let profileLineNoOverlap = true;
+          if (topbar && mobileUser && window.getComputedStyle(mobileUser).display !== "none") {
+            const tbRect = topbar.getBoundingClientRect();
+            const uRect = mobileUser.getBoundingClientRect();
+            profileLineNoOverlap = uRect.bottom <= tbRect.bottom + 2;
+          }
+
+          // Topbar vs Heading Collision (İçerik başlangıcı çakışması)
+          const heading = document.querySelector(".music-heading");
+          let headingNoOverlap = true;
+          if (topbar && heading) {
+            const tbRect = topbar.getBoundingClientRect();
+            const hRect = heading.getBoundingClientRect();
+            headingNoOverlap = hRect.top >= tbRect.bottom - 4;
+          }
+
+          // Topbar Elementleri Dikey Eksen Hizalaması
+          const topbarLeft = document.querySelector(".topbar-left");
+          const topbarRight = document.querySelector(".topbar-right");
+          let headerAlignOk = true;
+          if (topbarLeft && topbarRight) {
+            const lRect = topbarLeft.getBoundingClientRect();
+            const rRect = topbarRight.getBoundingClientRect();
+            headerAlignOk = Math.abs((lRect.top + lRect.height / 2) - (rRect.top + rRect.height / 2)) < 8;
+          }
+
           return {
             width: window.innerWidth,
             height: window.innerHeight,
@@ -299,6 +331,9 @@ export async function runRealBrowserAudit(): Promise<{
             tabletSidebarOk,
             sidebarWidth: Math.round(sideRect.width),
             playlistFormNoOverflow,
+            profileLineNoOverlap,
+            headingNoOverlap,
+            headerAlignOk,
             debugButtons
           };
         })()
@@ -337,7 +372,10 @@ export async function runRealBrowserAudit(): Promise<{
           m.menuInteractionPassed &&
           m.inputZoomSafe &&
           m.tabletSidebarOk &&
-          m.playlistFormNoOverflow
+          m.playlistFormNoOverflow &&
+          m.profileLineNoOverlap &&
+          m.headingNoOverlap &&
+          m.headerAlignOk
       ),
       measurements,
       browserName,
@@ -388,6 +426,9 @@ if (require.main === module || (typeof process !== "undefined" && process.argv[1
       console.log(`   - Input Odaklanma Font Boyutu: ${m.inputFontSize}px (16px Kuralı / Zoom Engeli: ${m.inputZoomSafe})`);
       console.log(`   - Kenar Çubuğu (Sidebar): ${m.sidebarWidth}px genişlik (Tablet 80px Rail Uyumu: ${m.tabletSidebarOk})`);
       console.log(`   - Çalma Listesi Form Taşması: ${m.playlistFormNoOverflow ? "Yok" : "Taşma Var"}`);
+      console.log(`   - Profil / Çizgi Çakışması: ${m.profileLineNoOverlap ? "Çakışma Yok (Çizgi profilin altında)" : "Çakışma Var"}`);
+      console.log(`   - Başlık / İçerik Çakışması: ${m.headingNoOverlap ? "Çakışma Yok (Başlık çubuğun altında)" : "Çakışma Var"}`);
+      console.log(`   - Üst Menü / Logo / Profil Dikey Hizası: ${m.headerAlignOk ? "Mükemmel Hizalı" : "Hizalama Sapması"}`);
       console.log(`   - Ekran Görüntüsü Kaydedildi: ${m.screenshotSaved} -> ${m.screenshotPath}\n`);
     });
 

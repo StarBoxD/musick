@@ -77,7 +77,7 @@ export default function PersonalPanel({
       : { type: "gems", label: "Keşfedilmemiş Parçalar" };
 
   return (
-    <div>
+    <div className="personal-panel-wrap">
       {message && <p className="music-message">{message}</p>}
       <SongGrid
         songs={songs}

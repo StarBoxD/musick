@@ -367,16 +367,18 @@ export default function MusicDashboard({ userId, displayName }: { userId: string
         )}
 
         {tab === "favorites" && (
-          <SongGrid
-            songs={library.favorites}
-            favorites={library.favorites}
-            pendingFavorites={library.pendingFavorites}
-            empty="Henüz favorilere eklenmiş bir parça yok."
-            source={{ type: "favorites", label: "Favoriler" }}
-            onPlay={play}
-            onFavorite={library.toggleFavorite}
-            onAdd={add}
-          />
+          <div className="favorites-wrap">
+            <SongGrid
+              songs={library.favorites}
+              favorites={library.favorites}
+              pendingFavorites={library.pendingFavorites}
+              empty="Henüz favorilere eklenmiş bir parça yok."
+              source={{ type: "favorites", label: "Favoriler" }}
+              onPlay={play}
+              onFavorite={library.toggleFavorite}
+              onAdd={add}
+            />
+          </div>
         )}
 
         {tab === "playlists" && (
