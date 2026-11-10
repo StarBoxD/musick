@@ -1,0 +1,184 @@
+/* ----- Mobile Playlists, Song Cards & Modals (<= 768px) ----- */
+@media (max-width: 768px) {
+  .playlist-create-bar {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .playlist-create-bar input {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .playlist-create-bar button {
+    min-height: 44px;
+    height: 44px;
+  }
+
+  .playlist-cards-row {
+    grid-template-columns: 1fr;
+  }
+
+  .active-playlist-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .active-playlist-actions {
+    width: 100%;
+  }
+
+  .active-playlist-actions .action-btn {
+    flex: 1;
+    min-height: 44px;
+  }
+
+  .playlist-rename-row {
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .playlist-rename-input {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .song-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .song-card {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 12px;
+    min-height: 88px;
+    padding: 10px;
+    border-radius: 13px;
+    background: var(--vybe-card);
+    box-shadow: none;
+  }
+
+  .song-card:hover {
+    transform: none;
+  }
+
+  .song-cover-wrap {
+    width: 64px;
+    height: 64px;
+    aspect-ratio: 1;
+    border-radius: 9px;
+    box-shadow: none;
+  }
+
+  .song-cover-fallback-disc {
+    width: 32px;
+    height: 32px;
+  }
+
+  .cover-play-badge {
+    display: none;
+  }
+
+  .song-info {
+    min-width: 0;
+    padding: 0;
+  }
+
+  .song-title {
+    font-size: 15.5px;
+    font-weight: 700;
+    line-height: 1.35;
+    -webkit-line-clamp: 2;
+  }
+
+  .song-artist {
+    margin-top: 4px;
+    font-size: 13.5px;
+    line-height: 1.35;
+    -webkit-line-clamp: 2;
+  }
+
+  .song-menu-wrap {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Dokunmatik butonlar: 44x44px erişilebilir alan */
+  .icon-action,
+  .song-menu-trigger {
+    position: static;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    display: grid;
+    place-items: center;
+  }
+
+  .song-dropdown-menu {
+    right: 0;
+  }
+
+  .song-dropdown-menu.open-down {
+    top: calc(100% + 6px);
+    bottom: auto;
+  }
+
+  .song-dropdown-menu.open-up {
+    bottom: calc(100% + 6px);
+    top: auto;
+  }
+
+  .music-toast {
+    left: 16px;
+    right: 16px;
+    bottom: calc(184px + env(safe-area-inset-bottom, 0px));
+    justify-content: center;
+  }
+
+  .album-adder-panel {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .album-adder-list {
+    grid-template-columns: 1fr;
+    max-height: 290px;
+  }
+
+  .album-adder-btn {
+    min-height: 44px;
+  }
+
+  .playlist-picker-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .playlist-picker-modal {
+    width: 100%;
+    max-height: 85vh;
+    border-radius: 22px 22px 0 0;
+    border-bottom: 0;
+    padding: 18px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .playlist-picker-item {
+    min-height: 54px;
+  }
+}

@@ -1,0 +1,157 @@
+/* =========================================================
+   TABLET GÖRÜNÜMÜ (769px – 1120px): İKON RAIL & TOPBAR
+   ========================================================= */
+@media (max-width: 1120px) and (min-width: 769px) {
+  .music-app {
+    grid-template-columns: 80px 1fr;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .music-sidebar {
+    width: 80px;
+    padding: 16px 8px;
+    align-items: center;
+  }
+
+  .sidebar-brand-row {
+    justify-content: center;
+    padding: 6px 0 16px;
+    width: 100%;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 8px;
+  }
+
+  .music-sidebar .brand {
+    font-size: 0;
+    gap: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .music-sidebar .brand .brand-mark {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: rgba(198, 255, 0, 0.12);
+    color: var(--lime);
+    box-shadow: 0 0 14px rgba(198, 255, 0, 0.08);
+  }
+
+  .beta-tag,
+  .side-label,
+  .side-text,
+  .side-count-badge,
+  .sidebar-playlists-group,
+  .side-user-text,
+  .sidebar-pwa-slot {
+    display: none;
+  }
+
+  .topbar-quick-search {
+    width: 220px;
+  }
+
+  .topbar-quick-search:focus-within {
+    width: 250px;
+  }
+
+  .home-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .home-collections-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .music-topbar {
+    height: 64px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .music-topbar .mobile-brand {
+    display: none;
+  }
+
+  .music-topbar .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font: 600 11px "DM Mono", monospace;
+    letter-spacing: 1.8px;
+  }
+
+  .music-topbar .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .music-topbar .mobile-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .music-topbar .mobile-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+  }
+
+  .music-topbar .mobile-user .signout-button {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 9px;
+  }
+
+  .music-sidebar .sidebar-bottom {
+    display: none;
+  }
+
+  .side-link {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 4px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    transition: background 0.16s, color 0.16s, transform 0.16s;
+  }
+
+  .side-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: scale(1.04);
+  }
+
+  .side-link.active {
+    background: rgba(198, 255, 0, 0.14) !important;
+    color: var(--lime) !important;
+    box-shadow: inset 0 0 0 1px rgba(198, 255, 0, 0.35);
+  }
+
+  .sidebar-bottom {
+    flex-direction: column;
+    padding: 8px 4px;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+  }
+
+  .install-btn-compact {
+    display: inline-flex;
+  }
+}

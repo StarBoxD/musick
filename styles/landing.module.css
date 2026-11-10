@@ -1,0 +1,188 @@
+/* ----- Landing Page Styles ----- */
+.landing {
+  max-width: 1440px;
+  margin: auto;
+  padding: 0 6.5%;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.landing-nav {
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+
+.landing-nav nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  color: #a7a8b0;
+  font-size: 11px;
+}
+
+.landing-nav nav a:hover {
+  color: white;
+}
+
+.nav-login {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  border: 1px solid #ffffff28;
+  border-radius: 6px;
+  color: white;
+}
+
+.landing-hero {
+  min-height: 610px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  padding: 65px 0;
+}
+
+.eyebrow {
+  font: 500 10px "DM Mono", monospace;
+  letter-spacing: 1.8px;
+  color: var(--lime);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+}
+
+.eyebrow span {
+  height: 6px;
+  width: 6px;
+  background: var(--lime);
+  border-radius: 50%;
+}
+
+.landing-hero h1 {
+  font-size: clamp(64px, 9vw, 118px);
+  line-height: 0.91;
+  letter-spacing: -8px;
+  margin: 27px 0 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.landing-hero h1 em,
+.auth-card h1 em,
+.dashboard-welcome h1 em {
+  font-style: normal;
+  color: var(--lime);
+}
+
+.landing-hero > p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #a1a3ad;
+  max-width: 380px;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-buttons {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-top: 25px;
+  position: relative;
+  z-index: 3;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--lime);
+  color: #171a0d;
+  border: 0;
+  border-radius: 6px;
+  padding: 14px 18px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.btn-primary:hover {
+  background: #e3ff91;
+}
+
+.btn-quiet {
+  font-size: 11px;
+  color: #b7b8c0;
+}
+
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.orb-a {
+  width: 410px;
+  height: 410px;
+  right: 10%;
+  top: 14%;
+  background: radial-gradient(circle, #a18aff28, transparent 68%);
+  filter: blur(12px);
+}
+
+.orb-b {
+  width: 300px;
+  height: 300px;
+  right: 17%;
+  top: 25%;
+  border: 1px solid #c1adff27;
+  box-shadow: 0 0 0 25px #ffffff04, 0 0 0 55px #ffffff03;
+}
+
+.hero-record {
+  position: absolute;
+  right: 17%;
+  top: 24%;
+  width: 245px;
+  height: 245px;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle, #292936 0 2px, #101117 3px 6px);
+  box-shadow: 0 25px 60px #0008;
+  display: grid;
+  place-items: center;
+  animation: rotate 24s linear infinite;
+}
+
+.record-inner {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: var(--lime);
+  color: #171a0d;
+  border: 10px solid #1c1c29;
+  display: grid;
+  place-items: center;
+}
+
+.hero-foot {
+  position: absolute;
+  bottom: 25px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  color: #656a75;
+  font: 9px "DM Mono";
+  letter-spacing: 1.3px;
+}
+
+@keyframes rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}

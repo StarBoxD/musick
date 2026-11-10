@@ -1,0 +1,154 @@
+/* ----- Auth Magic Link & Landing Mobile Responsive ----- */
+.magic-link-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.magic-link-form label {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #9a9da7;
+}
+
+.magic-email-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 12px;
+  border: 1px solid #ffffff22;
+  border-radius: 10px;
+  background: #0d0e14;
+}
+
+.magic-email-field input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: #f4f1ea;
+  font-size: 14px;
+  outline: none;
+}
+
+.magic-link-form button {
+  height: 48px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--lime);
+  color: #11130b;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.magic-link-form button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.auth-success {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: #efeaf8;
+}
+
+.auth-success p,
+.auth-error {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.auth-error {
+  color: #ffb4b4;
+  margin: 12px 0 0;
+}
+
+.spin {
+  animation: vybe-spin 1s linear infinite;
+}
+
+@keyframes vybe-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 700px) {
+  .landing {
+    padding: 0 20px;
+  }
+
+  .landing-nav {
+    height: 70px;
+  }
+
+  .landing-nav nav {
+    gap: 14px;
+    font-size: 9px;
+  }
+
+  .landing-nav nav > a:first-child,
+  .landing-nav nav > a:nth-child(2) {
+    display: none;
+  }
+
+  .landing-hero {
+    min-height: 590px;
+    padding: 60px 0;
+  }
+
+  .landing-hero h1 {
+    font-size: 67px;
+    letter-spacing: -5px;
+  }
+
+  .hero-record {
+    width: 160px;
+    height: 160px;
+    right: 7%;
+    top: 55%;
+    opacity: 0.72;
+  }
+
+  .record-inner {
+    width: 56px;
+    height: 56px;
+  }
+
+  .orb-b {
+    width: 190px;
+    height: 190px;
+    right: 2%;
+    top: 51%;
+  }
+
+  .hero-buttons {
+    gap: 14px;
+  }
+
+  .feature-strip {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .landing-bottom {
+    padding: 60px 0;
+  }
+
+  .landing-bottom h2 {
+    font-size: 36px;
+  }
+
+  .auth-card {
+    padding: 30px 24px;
+  }
+
+  .auth-card h1 {
+    font-size: 48px;
+  }
+}

@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "npx tsx scripts/test-full-suite.ts",
     "test:filter": "npx tsx scripts/test-license-filter.ts",
-    "test:browser": "npx tsx scripts/test-real-browser.ts"
+    "test:browser": "npx tsx scripts/test-real-browser.ts",
+    "check:lines": "npx tsx scripts/check-file-lines.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

@@ -1,0 +1,147 @@
+/* ----- Main Content Area, Topbar & Heading ----- */
+.music-main {
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 clamp(24px, 4vw, 56px) 128px;
+  width: 100%;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.music-main::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.music-topbar {
+  height: 64px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 1320px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.topbar-left,
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-quick-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 280px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--vybe-border);
+  background: var(--vybe-card);
+  color: var(--vybe-muted);
+  transition: border-color 0.16s ease, width 0.2s ease;
+}
+
+.topbar-quick-search:focus-within {
+  border-color: rgba(210, 255, 90, 0.45);
+  width: 320px;
+}
+
+.topbar-quick-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--vybe-text);
+  font: 500 12.5px Manrope, sans-serif;
+}
+
+.heading-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.mobile-brand {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 2px;
+}
+
+.mobile-user {
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+  border-radius: 8px;
+  flex: none;
+}
+
+.music-heading {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 26px 0 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.music-heading > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.music-heading h1 {
+  font-size: clamp(26px, 3.2vw, 38px);
+  font-weight: 800;
+  letter-spacing: -1.2px;
+  line-height: 1.15;
+  margin: 0 0 6px;
+  color: #ffffff;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.music-heading p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 640px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.home-dashboard,
+.radio-container,
+.playlists-studio,
+.smart-list,
+.personal-panel-wrap,
+.favorites-wrap {
+  max-width: 1320px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}

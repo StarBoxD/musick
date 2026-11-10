@@ -1,0 +1,71 @@
+/* ----- Tablet Cards, Mood Grid & MiniPlayer (769px – 1120px) ----- */
+@media (max-width: 1120px) and (min-width: 769px) {
+  .mood-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .now-playing-card {
+    grid-template-columns: 180px 1fr;
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .now-playing-cover-wrap {
+    width: 180px;
+    height: 180px;
+  }
+
+  .mini-player {
+    left: 96px;
+    right: 20px;
+    bottom: 20px;
+    padding: 10px 14px;
+  }
+
+  .mini-player .player-seek {
+    min-width: 140px;
+    flex: 1;
+  }
+
+  .mini-player .player-volume {
+    min-width: 90px;
+  }
+
+  .song-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .song-card {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .song-cover-wrap {
+    aspect-ratio: 1;
+    border-radius: 12px;
+  }
+
+  .song-info {
+    padding-top: 12px;
+  }
+
+  .song-title {
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  .song-artist {
+    font-size: 13px;
+  }
+
+  .song-menu-trigger {
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

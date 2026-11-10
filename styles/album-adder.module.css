@@ -1,0 +1,194 @@
+/* ----- Inline Album / Playlist Song Adder Panel ----- */
+.album-adder-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(210, 255, 90, 0.24);
+  background: linear-gradient(150deg, #181924 0%, #111118 100%);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.42);
+}
+
+.album-adder-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.album-adder-header h3 {
+  margin: 4px 0 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--vybe-text);
+}
+
+.album-adder-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 6px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--vybe-border);
+  background: #0d0e15;
+  color: var(--vybe-muted);
+}
+
+.album-adder-search:focus-within {
+  border-color: rgba(210, 255, 90, 0.45);
+}
+
+.album-adder-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--vybe-text);
+  font: 500 13.5px Manrope, sans-serif;
+}
+
+.album-adder-search button {
+  min-height: 36px;
+  padding: 0 16px;
+  border-radius: 9px;
+  border: 0;
+  background: var(--vybe-accent);
+  color: #09090d;
+  font: 700 12.5px Manrope, sans-serif;
+  cursor: pointer;
+}
+
+.album-adder-search button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.album-adder-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.album-adder-tab {
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--vybe-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--vybe-muted);
+  font: 700 12px Manrope, sans-serif;
+  cursor: pointer;
+  transition: 0.16s ease;
+}
+
+.album-adder-tab.active {
+  border-color: rgba(210, 255, 90, 0.48);
+  background: rgba(210, 255, 90, 0.14);
+  color: var(--vybe-accent);
+}
+
+.album-adder-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.album-adder-empty {
+  grid-column: 1 / -1;
+  padding: 18px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--vybe-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.album-adder-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.03);
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+
+.album-adder-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(210, 255, 90, 0.28);
+}
+
+.album-adder-song {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.album-adder-song img,
+.album-adder-fallback {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 9px;
+  object-fit: cover;
+  background: #161722;
+  display: grid;
+  place-items: center;
+  color: var(--vybe-accent);
+}
+
+.album-adder-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.album-adder-meta strong {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--vybe-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.album-adder-meta span {
+  font-size: 12px;
+  color: var(--vybe-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.album-adder-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 9px;
+  border: 1px solid rgba(210, 255, 90, 0.35);
+  background: rgba(210, 255, 90, 0.12);
+  color: var(--vybe-accent);
+  font: 700 12px Manrope, sans-serif;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: 0.16s ease;
+}
+
+.album-adder-btn:hover,
+.album-adder-btn.is-added {
+  background: var(--vybe-accent);
+  color: #09090d;
+  border-color: var(--vybe-accent);
+}

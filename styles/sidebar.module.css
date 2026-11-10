@@ -1,0 +1,175 @@
+/* =========================================================
+   VYBE STUDIO SHELL & SIDEBAR — DESKTOP
+   ========================================================= */
+.music-app {
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 248px 1fr;
+  background:
+    radial-gradient(ellipse at 75% 0%, rgba(210, 255, 90, 0.05), transparent 45%),
+    radial-gradient(ellipse at 15% 100%, rgba(255, 255, 255, 0.03), transparent 45%),
+    #09090d;
+  color: var(--text);
+}
+
+.music-sidebar {
+  height: 100vh;
+  height: 100dvh;
+  padding: 22px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #0d0d13;
+  border-right: 1px solid var(--line);
+  overflow: hidden;
+  scrollbar-width: none;
+  z-index: 3;
+}
+
+.music-sidebar::-webkit-scrollbar {
+  display: none;
+}
+
+.sidebar-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 8px 12px;
+}
+
+.beta-tag {
+  font: 600 9px "DM Mono", monospace;
+  letter-spacing: 1.4px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  color: #9da2b3;
+}
+
+.side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.side-nav::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.side-label {
+  font: 500 9px "DM Mono", monospace;
+  letter-spacing: 1.8px;
+  color: #5e6272;
+  margin: 14px 10px 6px;
+}
+
+.side-link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #9498a8;
+  padding: 8px 10px;
+  border-radius: 10px;
+  text-align: left;
+  font: 600 13px Manrope, sans-serif;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.side-icon {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: inherit;
+}
+
+.side-link:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+}
+
+.side-link.active {
+  background: linear-gradient(90deg, rgba(210, 255, 90, 0.12), rgba(25, 25, 35, 0.92));
+  border-color: rgba(210, 255, 90, 0.28);
+  color: #ffffff;
+}
+
+.side-link.active .side-icon {
+  background: var(--lime);
+  color: #10120a;
+}
+
+.side-count-badge {
+  margin-left: auto;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--vybe-muted);
+  font: 700 10.5px "DM Mono", monospace;
+}
+
+.side-link.active .side-count-badge {
+  background: rgba(210, 255, 90, 0.2);
+  color: var(--lime);
+}
+
+.sidebar-playlists-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.side-playlist-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  color: #8f94a6;
+  font: 600 12px Manrope, sans-serif;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.side-playlist-shortcut span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side-playlist-shortcut:hover,
+.side-playlist-shortcut.active {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--vybe-text);
+}
+
+.side-playlist-shortcut.active svg {
+  color: var(--lime);
+}

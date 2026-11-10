@@ -1,0 +1,141 @@
+/* =========================================================
+   TELEFON GÖRÜNÜMÜ (<= 768px): SHELL & STICKY TOPBAR
+   ========================================================= */
+@media (max-width: 768px) {
+  html,
+  body {
+    overflow-x: hidden;
+    width: 100%;
+    height: 100%;
+    overscroll-behavior-y: none;
+    -webkit-text-size-adjust: 100%;
+    background: var(--bg);
+  }
+
+  /* iOS Safari 16px font-size kuralı: Input açıldığında otomatik yakınlaştırmayı engeller */
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="password"],
+  .music-search input,
+  .playlist-create-bar input,
+  .playlist-rename-input,
+  .playlist-picker-create input,
+  .album-adder-search input,
+  .magic-email-field input {
+    font-size: 16px !important;
+  }
+
+  .music-app {
+    position: fixed;
+    inset: 0;
+    grid-template-columns: 1fr;
+    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .music-sidebar {
+    display: none;
+  }
+
+  .music-main {
+    height: 100%;
+    height: 100dvh;
+    padding: 0 16px calc(210px + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .music-topbar {
+    min-height: calc(56px + env(safe-area-inset-top, 0px));
+    height: calc(56px + env(safe-area-inset-top, 0px));
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    background: rgba(9, 9, 13, 0.94);
+    backdrop-filter: blur(20px);
+    margin: 0 -16px;
+    padding: env(safe-area-inset-top, 0px) 16px 0;
+    width: calc(100% + 32px);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .topbar-left,
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 56px;
+  }
+
+  .mobile-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 800;
+    font-size: 15.5px;
+    letter-spacing: 1.5px;
+    color: #ffffff;
+    text-decoration: none;
+    line-height: 1;
+  }
+
+  .mobile-brand .brand-mark {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    background: rgba(198, 255, 0, 0.12);
+    color: var(--lime);
+    flex: none;
+  }
+
+  .install-btn-compact {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    height: 36px;
+    padding: 0 12px;
+    font-size: 11.5px;
+    border-radius: 8px;
+  }
+
+  .mobile-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mobile-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+    border-radius: 9px;
+    flex: none;
+  }
+
+  .mobile-user .signout-button {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 9px;
+    flex: none;
+  }
+
+  .music-topbar .eyebrow,
+  .topbar-quick-search,
+  .heading-quick-actions {
+    display: none;
+  }
+}

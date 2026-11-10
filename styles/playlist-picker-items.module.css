@@ -1,0 +1,99 @@
+/* ----- Playlist / Album Picker Modal List Items ----- */
+.playlist-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 280px;
+  padding-right: 2px;
+}
+
+.playlist-picker-empty {
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--vybe-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.playlist-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--vybe-text);
+  text-align: left;
+  cursor: pointer;
+  transition: 0.16s ease;
+}
+
+.playlist-picker-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(210, 255, 90, 0.35);
+}
+
+.playlist-picker-item.is-added {
+  border-color: rgba(210, 255, 90, 0.48);
+  background: rgba(210, 255, 90, 0.1);
+}
+
+.playlist-picker-item-icon {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--vybe-text);
+}
+
+.playlist-picker-item.is-added .playlist-picker-item-icon {
+  background: var(--vybe-accent);
+  color: #09090d;
+}
+
+.playlist-picker-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.playlist-picker-item-info strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--vybe-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlist-picker-item-info small {
+  font-size: 11.5px;
+  color: var(--vybe-muted);
+}
+
+.playlist-picker-item-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--vybe-text);
+  font: 700 11.5px Manrope, sans-serif;
+  flex-shrink: 0;
+}
+
+.playlist-picker-item.is-added .playlist-picker-item-badge {
+  background: var(--vybe-accent);
+  color: #09090d;
+}

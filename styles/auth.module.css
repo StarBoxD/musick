@@ -1,0 +1,162 @@
+/* ----- Landing Strip, Footer & Auth Pages ----- */
+.feature-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 28px 0;
+  gap: 20px;
+}
+
+.feature-strip > div {
+  display: grid;
+  grid-template-columns: 35px 1fr;
+  column-gap: 10px;
+  align-items: center;
+}
+
+.feature-strip svg {
+  grid-row: span 2;
+  color: var(--lime);
+  width: 20px;
+}
+
+.feature-strip b {
+  font-size: 11px;
+}
+
+.feature-strip small {
+  font-size: 9px;
+  color: #858995;
+  margin-top: 4px;
+}
+
+.landing-bottom {
+  padding: 85px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.landing-bottom h2 {
+  font-size: 45px;
+  line-height: 1.05;
+  letter-spacing: -2px;
+  margin: 15px 0 0;
+}
+
+.round-link {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--lime);
+  color: #171a0d;
+}
+
+.landing footer,
+.dashboard-page footer {
+  border-top: 1px solid var(--line);
+  padding: 20px 0;
+  display: flex;
+  justify-content: space-between;
+  color: #737783;
+  font: 9px "DM Mono";
+  letter-spacing: 1px;
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 25px;
+  position: relative;
+  background: var(--bg);
+}
+
+.back-link {
+  position: absolute;
+  top: 30px;
+  left: 5%;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #9699a3;
+  font-size: 11px;
+}
+
+.auth-card {
+  width: min(430px, 100%);
+  padding: 43px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #12131a;
+  box-shadow: 0 30px 90px #0006;
+}
+
+.auth-brand {
+  margin-bottom: 48px;
+}
+
+.auth-card h1 {
+  font-size: 54px;
+  line-height: 0.98;
+  letter-spacing: -3px;
+  margin: 17px 0;
+}
+
+.auth-card > p {
+  font-size: 11px;
+  color: #9a9da7;
+  line-height: 1.8;
+  margin-bottom: 27px;
+}
+
+.google-button {
+  height: 48px;
+  width: 100%;
+  border: 1px solid #ffffff26;
+  background: #f4f4f4;
+  color: #171717;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.google-button:hover {
+  background: white;
+}
+
+.google-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.legal-note {
+  display: block;
+  color: #666b76;
+  font-size: 9px;
+  line-height: 1.7;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.error-message {
+  color: #ff8c9b !important;
+  font-size: 10px !important;
+}
+
+.auth-decoration {
+  position: absolute;
+  bottom: 25px;
+  right: 5%;
+  font: 9px "DM Mono";
+  color: #555b65;
+  letter-spacing: 1px;
+}

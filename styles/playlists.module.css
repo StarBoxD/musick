@@ -1,0 +1,195 @@
+/* ----- Playlists Studio & Active Collection Banner ----- */
+.playlists-studio {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.playlists-header-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.playlist-create-bar {
+  flex: 1;
+  max-width: 520px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 6px 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  transition: border-color 0.16s;
+}
+
+.playlist-create-bar:focus-within {
+  border-color: rgba(210, 255, 90, 0.45);
+}
+
+.playlist-create-bar input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font: 500 13px Manrope, sans-serif;
+}
+
+.playlist-create-bar button {
+  height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--lime);
+  color: #11130b;
+  font: 800 12px Manrope, sans-serif;
+  cursor: pointer;
+}
+
+.playlist-create-bar button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.playlist-cards-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.playlist-pill-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  cursor: pointer;
+  transition: border-color 0.16s, background 0.16s;
+}
+
+.playlist-pill-card:hover {
+  border-color: var(--line-strong);
+  background: var(--panel-elevated);
+}
+
+.playlist-pill-card.active {
+  border-color: var(--lime);
+  background: #15171f;
+}
+
+.playlist-pill-icon {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  color: #c8ccd8;
+}
+
+.playlist-pill-card.active .playlist-pill-icon {
+  background: var(--lime);
+  color: #11130b;
+}
+
+.playlist-pill-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.playlist-pill-info strong {
+  font-size: 13.5px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlist-pill-info small {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.playlist-pill-delete {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 7px;
+  border: 0;
+  background: transparent;
+  color: #7c8091;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.playlist-pill-delete:hover {
+  background: rgba(255, 86, 120, 0.14);
+  color: #ff8ca8;
+}
+
+.active-playlist-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.active-playlist-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.active-playlist-banner h2 {
+  margin: 4px 0 2px;
+  font-size: 22px;
+  letter-spacing: -0.6px;
+}
+
+.active-playlist-banner small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.playlist-rename-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.playlist-rename-input {
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  color: var(--fg);
+  font-size: 16px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  outline: none;
+  min-width: 200px;
+}
+
+.active-playlist-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}

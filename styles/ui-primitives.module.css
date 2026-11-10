@@ -1,0 +1,126 @@
+/* ----- Shared Action Buttons, Placeholders, Toasts & Empty States ----- */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel-elevated);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font: 700 12.5px Manrope, sans-serif;
+  cursor: pointer;
+  transition: 0.16s;
+}
+
+.action-btn:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: #1f202d;
+}
+
+.action-btn.fav-active {
+  background: rgba(255, 86, 128, 0.16);
+  border-color: rgba(255, 86, 128, 0.45);
+  color: #ff8ca8;
+}
+
+.action-btn.next-btn {
+  background: var(--lime);
+  color: #11130b;
+  border-color: var(--lime);
+  font-weight: 800;
+}
+
+.action-btn.next-btn:hover {
+  background: #e2ff85;
+}
+
+.radio-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 46px 20px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+}
+
+.pulse-disc {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(210, 255, 90, 0.1);
+  border: 1px solid rgba(210, 255, 90, 0.25);
+  color: var(--lime);
+  margin-bottom: 12px;
+}
+
+.radio-placeholder h3 {
+  font-size: 17px;
+  margin: 0 0 6px;
+  color: #ffffff;
+}
+
+.radio-placeholder p {
+  color: var(--muted);
+  font-size: 12.5px;
+  max-width: 420px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.music-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 104px;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: rgba(20, 21, 30, 0.96);
+  border: 1px solid rgba(210, 255, 90, 0.4);
+  color: var(--text);
+  font: 600 12.5px Manrope, sans-serif;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(14px);
+}
+
+.music-toast svg {
+  color: var(--lime);
+  flex: none;
+}
+
+.music-message {
+  max-width: 1320px;
+  margin: 0 auto 14px;
+  font-size: 12px;
+  color: var(--lime);
+}
+
+.empty-state {
+  max-width: 1320px;
+  margin: 0 auto;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 14px;
+  padding: 36px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+
+.text-action {
+  border: 0;
+  background: transparent;
+  color: var(--lime);
+  cursor: pointer;
+  font: 700 11.5px Manrope, sans-serif;
+}

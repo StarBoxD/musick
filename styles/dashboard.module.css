@@ -1,0 +1,179 @@
+/* ----- Home Dashboard Hero & Daily Card ----- */
+.home-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.home-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.home-welcome-card {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 176px;
+  gap: 24px;
+  align-items: center;
+  padding: 26px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: linear-gradient(140deg, #1b1c29 0%, #111118 65%, #0d0d13 100%);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.36);
+}
+
+.home-welcome-ambient {
+  position: absolute;
+  inset: -30%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(70px) saturate(1.4);
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.home-welcome-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.home-welcome-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.home-welcome-content h2 {
+  margin: 2px 0 0;
+  font-size: clamp(22px, 2.5vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.7px;
+  line-height: 1.2;
+  color: var(--vybe-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.home-welcome-desc {
+  margin: 0;
+  color: var(--vybe-muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+  max-width: 520px;
+}
+
+.home-welcome-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.home-welcome-cover {
+  position: relative;
+  z-index: 1;
+  width: 176px;
+  height: 176px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #151622;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+
+.home-welcome-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.home-welcome-cover-fallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--vybe-accent);
+  background: radial-gradient(circle at 30% 30%, rgba(210, 255, 90, 0.16), #13141f);
+}
+
+.home-daily-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px;
+  border-radius: 20px;
+  border: 1px solid var(--vybe-border);
+  background: linear-gradient(145deg, #191923, #111118);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
+}
+
+.home-daily-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.home-daily-top .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--vybe-accent);
+  font: 700 10.5px "DM Mono", monospace;
+  letter-spacing: 1.5px;
+}
+
+.home-daily-body {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+}
+
+.home-daily-cover-btn {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  padding: 0;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  background: #151621;
+  cursor: pointer;
+  display: block;
+}
+
+.home-daily-cover-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.home-daily-fallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--vybe-accent);
+}
+
+.home-daily-cover-btn:hover .cover-play-badge {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}

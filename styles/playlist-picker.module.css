@@ -1,0 +1,130 @@
+/* ----- Playlist / Album Picker Modal Shell & Create Bar ----- */
+.playlist-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 75;
+  background: rgba(5, 5, 10, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.playlist-picker-modal {
+  width: min(460px, 100%);
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(155deg, #181924 0%, #101118 100%);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.75);
+  color: var(--vybe-text);
+  overflow: hidden;
+}
+
+.playlist-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.playlist-picker-header h3 {
+  margin: 4px 0 0;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.playlist-picker-song {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.playlist-picker-song img,
+.playlist-picker-fallback {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #161722;
+  display: grid;
+  place-items: center;
+  color: var(--vybe-accent);
+}
+
+.playlist-picker-song-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.playlist-picker-song-meta strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--vybe-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlist-picker-song-meta span {
+  font-size: 12.5px;
+  color: var(--vybe-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlist-picker-create {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--vybe-border);
+  background: #0d0e15;
+  color: var(--vybe-muted);
+}
+
+.playlist-picker-create:focus-within {
+  border-color: rgba(210, 255, 90, 0.45);
+}
+
+.playlist-picker-create input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--vybe-text);
+  font: 500 13px Manrope, sans-serif;
+}
+
+.playlist-picker-create button {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 0;
+  background: var(--vybe-accent);
+  color: #09090d;
+  font: 700 12px Manrope, sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.playlist-picker-create button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
