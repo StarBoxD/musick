@@ -75,6 +75,7 @@ async function buildReactMountBundle(): Promise<string> {
     import React, { useState } from "react";
     import { createRoot } from "react-dom/client";
     import SongGrid from "./components/music/song-grid";
+    import MusicDashboard from "./components/music/music-dashboard";
 
     const makeArtwork = (c1: string, c2: string, accent: string, title: string, sub: string) =>
       \`data:image/svg+xml;utf8,\${encodeURIComponent(
@@ -267,7 +268,200 @@ async function buildReactMountBundle(): Promise<string> {
       const root = createRoot(rootEl);
       root.render(<TestHarnessApp />);
     }
+
+    // Intercept fetch for full MusicDashboard rendering
+    const origFetch = window.fetch.bind(window);
+    window.fetch = async (input, init) => {
+      const urlStr = typeof input === "string" ? input : input.url || "";
+      if (urlStr.includes("/api/music/daily")) {
+        return new Response(JSON.stringify({ song: SAMPLE_SONGS[0] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (urlStr.includes("/api/music/smart")) {
+        return new Response(
+          JSON.stringify({
+            suggestions: [
+              { name: "Anadolu & Alternatif Seçki", songs: SAMPLE_SONGS.slice(0, 3) },
+              { name: "Gece Frekansı", songs: SAMPLE_SONGS.slice(2, 5) },
+            ],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      if (urlStr.includes("/api/music/")) {
+        return new Response(JSON.stringify({ songs: SAMPLE_SONGS, exhausted: false }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return origFetch(input, init);
+    };
+
+    window.__MOUNT_FULL_DASHBOARD__ = (initialTab = "home") => {
+      try {
+        Object.defineProperty(HTMLMediaElement.prototype, "src", {
+          configurable: true,
+          get() { return this._mockSrc || ""; },
+          set(v) { this._mockSrc = v; },
+        });
+        Object.defineProperty(HTMLMediaElement.prototype, "duration", {
+          configurable: true,
+          get() { return 214; },
+        });
+        Object.defineProperty(HTMLMediaElement.prototype, "currentTime", {
+          configurable: true,
+          get() { return this._mockTime ?? 68; },
+          set(v) { this._mockTime = v; },
+        });
+        HTMLMediaElement.prototype.load = function () {
+          setTimeout(() => {
+            this.dispatchEvent(new Event("loadedmetadata"));
+            this.dispatchEvent(new Event("timeupdate"));
+          }, 10);
+        };
+        HTMLMediaElement.prototype.play = function () {
+          this.dispatchEvent(new Event("loadedmetadata"));
+          this.dispatchEvent(new Event("timeupdate"));
+          return Promise.resolve();
+        };
+      } catch {}
+      document.body.innerHTML = '<div id="full-dashboard-mount"></div>';
+      const mountEl = document.getElementById("full-dashboard-mount");
+      if (mountEl) {
+        const dashRoot = createRoot(mountEl);
+        dashRoot.render(
+          <MusicDashboard userId="usr-vybe-test" displayName="Efe" initialTab={initialTab} />
+        );
+      }
+    };
   `;
+
+  const shimPlugin: esbuild.Plugin = {
+    name: "vybe-next-supabase-shims",
+    setup(build) {
+      build.onResolve({ filter: /^next\/link$/ }, () => ({
+        path: "next-link-shim",
+        namespace: "shim",
+      }));
+      build.onLoad({ filter: /^next-link-shim$/, namespace: "shim" }, () => ({
+        contents: `
+          import React from "react";
+          export default function Link({ href, children, ...rest }) {
+            return React.createElement("a", { href, ...rest }, children);
+          }
+        `,
+        loader: "tsx",
+        resolveDir: process.cwd(),
+      }));
+
+      build.onResolve({ filter: /^next\/navigation$/ }, () => ({
+        path: "next-nav-shim",
+        namespace: "shim",
+      }));
+      build.onLoad({ filter: /^next-nav-shim$/, namespace: "shim" }, () => ({
+        contents: `
+          export function useRouter() {
+            return { push: () => {}, refresh: () => {}, replace: () => {} };
+          }
+        `,
+        loader: "ts",
+        resolveDir: process.cwd(),
+      }));
+
+      build.onResolve({ filter: /^@\/lib\/supabase\/client$/ }, () => ({
+        path: "supabase-client-shim",
+        namespace: "shim",
+      }));
+      build.onLoad({ filter: /^supabase-client-shim$/, namespace: "shim" }, () => ({
+        resolveDir: process.cwd(),
+        contents: `
+          export function createClient() {
+            const state = window.__VYBE_TEST_STATE__ || {};
+            const defaultSongs = state.songs || [];
+            const playlists = [
+              { id: "pl-1", name: "Gece Sürüşü", created_at: "2026-11-10T10:00:00Z" },
+              { id: "pl-2", name: "Anadolu Rock Klasikleri", created_at: "2026-11-09T10:00:00Z" },
+            ];
+            const makeBuilder = (table) => {
+              const chain = {
+                select: () => chain,
+                eq: () => chain,
+                order: () => {
+                  if (table === "favorites") {
+                    return Promise.resolve({
+                      data: defaultSongs.slice(0, 3).map((s) => ({
+                        song: s,
+                        track_id: s.trackId,
+                        created_at: "2026-11-10T10:00:00Z",
+                      })),
+                      error: null,
+                    });
+                  }
+                  if (table === "playlists") {
+                    return Promise.resolve({ data: playlists, error: null });
+                  }
+                  if (table === "playlist_tracks") {
+                    return Promise.resolve({
+                      data: defaultSongs.slice(0, 3).map((s) => ({
+                        song: s,
+                        created_at: "2026-11-10T10:00:00Z",
+                      })),
+                      error: null,
+                    });
+                  }
+                  return Promise.resolve({ data: [], error: null });
+                },
+                insert: (payload) => ({
+                  select: () => ({
+                    single: () =>
+                      Promise.resolve({
+                        data: {
+                          id: "pl-new",
+                          name: payload?.name || "Yeni Liste",
+                          created_at: new Date().toISOString(),
+                        },
+                        error: null,
+                      }),
+                  }),
+                  then: (cb) => Promise.resolve({ data: null, error: null }).then(cb),
+                }),
+                update: () => chain,
+                delete: () => chain,
+                upsert: () => Promise.resolve({ data: null, error: null }),
+                single: () => Promise.resolve({ data: playlists[0], error: null }),
+                then: (cb) => Promise.resolve({ data: [], error: null }).then(cb),
+              };
+              return chain;
+            };
+            return {
+              auth: {
+                getUser: async () => ({ data: { user: { id: "usr-vybe-test" } }, error: null }),
+                signOut: async () => ({ error: null }),
+              },
+              from: (table) => makeBuilder(table),
+            };
+          }
+        `,
+        loader: "ts",
+      }));
+
+      build.onResolve({ filter: /^@\// }, (args) => {
+        const sub = args.path.slice(2);
+        const candidates = [
+          path.resolve(process.cwd(), sub + ".tsx"),
+          path.resolve(process.cwd(), sub + ".ts"),
+          path.resolve(process.cwd(), sub, "index.tsx"),
+          path.resolve(process.cwd(), sub, "index.ts"),
+        ];
+        for (const c of candidates) {
+          if (fs.existsSync(c)) return { path: c };
+        }
+        return { path: path.resolve(process.cwd(), sub) };
+      });
+    },
+  };
 
   const result = await esbuild.build({
     stdin: {
@@ -282,6 +476,7 @@ async function buildReactMountBundle(): Promise<string> {
     platform: "browser",
     target: ["chrome110"],
     jsx: "automatic",
+    plugins: [shimPlugin],
     define: {
       "process.env.NODE_ENV": '"development"',
     },
@@ -862,6 +1057,58 @@ export async function runRealBrowserAudit(): Promise<{
         screenshotSaved: true,
         screenshotPath: fullScreenshotPath,
       });
+    }
+
+    // Mount the REAL full MusicDashboard component and capture multi-tab & 3-device visual verification screenshots
+    const dashboardShots: { tab: string; width: number; height: number; mobile: boolean; filename: string }[] = [
+      { tab: "home", width: 1440, height: 920, mobile: false, filename: "vybe_home_1440.png" },
+      { tab: "home", width: 820, height: 980, mobile: false, filename: "vybe_home_820.png" },
+      { tab: "home", width: 390, height: 844, mobile: true, filename: "vybe_home_390.png" },
+      { tab: "discover", width: 1440, height: 920, mobile: false, filename: "vybe_discover_1440.png" },
+      { tab: "favorites", width: 1440, height: 920, mobile: false, filename: "vybe_favorites_1440.png" },
+      { tab: "playlists", width: 1440, height: 920, mobile: false, filename: "vybe_playlists_1440.png" },
+    ];
+
+    for (const shot of dashboardShots) {
+      await cdp.send("Emulation.setDeviceMetricsOverride", {
+        width: shot.width,
+        height: shot.height,
+        deviceScaleFactor: 1,
+        mobile: shot.mobile,
+      });
+      await cdp.send("Runtime.evaluate", {
+        expression: `if (window.__MOUNT_FULL_DASHBOARD__) { window.__MOUNT_FULL_DASHBOARD__("${shot.tab}"); }`,
+      });
+      await new Promise((r) => setTimeout(r, 220));
+      await cdp.send("Runtime.evaluate", {
+        expression: `(() => {
+          const playBtn = document.querySelector(".home-welcome-actions .next-btn, .now-playing-card .next-btn, .collection-hero-actions .next-btn, .playlist-detail-actions .next-btn");
+          if (playBtn instanceof HTMLElement) playBtn.click();
+        })()`,
+      });
+      await new Promise((r) => setTimeout(r, 120));
+      const shotData = await cdp.send("Page.captureScreenshot", { format: "png" });
+      const buf = Buffer.from(shotData.data, "base64");
+      fs.writeFileSync(path.join(artifactRoot, shot.filename), buf);
+      if (shot.tab === "home" && shot.width === 1440) {
+        fs.writeFileSync(path.join(artifactRoot, "vybe_desktop_1440.png"), buf);
+      } else if (shot.tab === "home" && shot.width === 820) {
+        fs.writeFileSync(path.join(artifactRoot, "vybe_tablet_820.png"), buf);
+      } else if (shot.tab === "home" && shot.width === 390) {
+        fs.writeFileSync(path.join(artifactRoot, "vybe_phone_390.png"), buf);
+        await cdp.send("Runtime.evaluate", {
+          expression: `(() => {
+            const expBtn = document.querySelector(".player-expand-btn");
+            if (expBtn instanceof HTMLElement) expBtn.click();
+          })()`,
+        });
+        await new Promise((r) => setTimeout(r, 100));
+        const expData = await cdp.send("Page.captureScreenshot", { format: "png" });
+        fs.writeFileSync(
+          path.join(artifactRoot, "vybe_phone_expanded_player_390.png"),
+          Buffer.from(expData.data, "base64")
+        );
+      }
     }
 
     return {

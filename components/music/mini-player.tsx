@@ -1,7 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { AlertCircle, Loader2, Pause, Play, SkipBack, SkipForward, Volume2, X } from "lucide-react";
+import {
+  AlertCircle,
+  ChevronDown,
+  Disc3,
+  Loader2,
+  Maximize2,
+  Pause,
+  Play,
+  SkipBack,
+  SkipForward,
+  Volume2,
+  X,
+} from "lucide-react";
 import type { Song } from "@/types/music";
 import { isValidStreamUrl } from "@/lib/music/license-filter";
 
@@ -48,6 +60,7 @@ export default function MiniPlayer({
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSeeking, setIsSeeking] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   // 15 saniye dinlendiğinde veritabanına kaydet
   const markAsListened = useCallback(async (s: Song) => {
@@ -94,6 +107,7 @@ export default function MiniPlayer({
       setDuration(0);
       setIsReady(false);
       setError(null);
+      setExpanded(false);
       return;
     }
 
@@ -302,7 +316,11 @@ export default function MiniPlayer({
   if (!song) return null;
 
   return (
-    <aside className="mini-player" aria-label="Müzik Oynatıcı">
+    <aside
+      id="mini-player"
+      className={`mini-player ${expanded ? "is-expanded" : ""}`}
+      aria-label="Müzik Oynatıcı"
+    >
       <audio
         ref={audioRef}
         onPlay={() => setPlaying(true)}
@@ -347,13 +365,65 @@ export default function MiniPlayer({
         }}
       />
 
-      {song.artwork ? (
-        <img src={song.artwork} alt={song.title} className="player-artwork" />
-      ) : (
-        <span className="player-fallback">V</span>
+      {expanded && (
+        <div className="player-expanded-header">
+          <button
+            type="button"
+            className="icon-action player-collapse-btn"
+            onClick={() => setExpanded(false)}
+            aria-label="Tam ekran oynatıcıyı küçült"
+            title="Küçült"
+          >
+            <ChevronDown size={22} />
+          </button>
+          <span className="player-expanded-kicker">ŞİMDİ ÇALIYOR</span>
+          <button
+            type="button"
+            className="icon-action player-close-btn"
+            onClick={() => {
+              setExpanded(false);
+              onClose();
+            }}
+            aria-label="Oynatıcıyı Kapat"
+            title="Kapat"
+          >
+            <X size={18} />
+          </button>
+        </div>
       )}
 
-      <div className="player-track">
+      {song.artwork ? (
+        <img
+          src={song.artwork}
+          alt={song.title}
+          className="player-artwork"
+          onClick={() => {
+            if (typeof window !== "undefined" && window.innerWidth <= 768) {
+              setExpanded((prev) => !prev);
+            }
+          }}
+        />
+      ) : (
+        <span
+          className="player-fallback"
+          onClick={() => {
+            if (typeof window !== "undefined" && window.innerWidth <= 768) {
+              setExpanded((prev) => !prev);
+            }
+          }}
+        >
+          <Disc3 size={22} />
+        </span>
+      )}
+
+      <div
+        className="player-track"
+        onClick={() => {
+          if (typeof window !== "undefined" && window.innerWidth <= 768) {
+            setExpanded((prev) => !prev);
+          }
+        }}
+      >
         <strong title={song.title}>{song.title}</strong>
         <span title={song.artist}>{song.artist}</span>
       </div>
@@ -446,15 +516,29 @@ export default function MiniPlayer({
         />
       </label>
 
-      <button
-        type="button"
-        className="icon-action player-close-btn"
-        onClick={onClose}
-        aria-label="Oynatıcıyı Kapat"
-        title="Kapat"
-      >
-        <X size={18} />
-      </button>
+      {!expanded && (
+        <button
+          type="button"
+          className="icon-action player-expand-btn"
+          onClick={() => setExpanded(true)}
+          aria-label="Tam ekran oynatıcıyı aç"
+          title="Tam Ekran Oynatıcı"
+        >
+          <Maximize2 size={15} />
+        </button>
+      )}
+
+      {!expanded && (
+        <button
+          type="button"
+          className="icon-action player-close-btn"
+          onClick={onClose}
+          aria-label="Oynatıcıyı Kapat"
+          title="Kapat"
+        >
+          <X size={18} />
+        </button>
+      )}
     </aside>
   );
 }
